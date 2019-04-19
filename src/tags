@@ -1,0 +1,41 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/45968eff/
+BUFFER_SIZE	file.h	/^#define BUFFER_SIZE /;"	d
+__anonc6f179730108	mathematic.c	/^typedef struct{$/;"	s	file:
+__anonc6f179730108::x	mathematic.c	/^    double x;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
+__anonc6f179730108::y	mathematic.c	/^    double y;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
+desc	main.c	/^char *desc[]={$/;"	v	typeref:typename:char * []
+detrend_flucuation	mathematic.c	/^detrend_flucuation($/;"	f	typeref:typename:double	signature:(int order,double * y,int num,double * fn,double * n,int * ssize,double * fit)
+detrend_flucuation	mathematic.h	/^double detrend_flucuation(int order, double *y, int num, double *fn, double *n, int *ssize, doub/;"	p	typeref:typename:double	signature:(int order,double * y,int num,double * fn,double * n,int * ssize,double * fit)
+fit_diff	mathematic.c	/^double fit_diff(double x,double y,double *store,int order){$/;"	f	typeref:typename:double	signature:(double x,double y,double * store,int order)
+fit_diff	mathematic.h	/^double fit_diff(double x,double y,double *store,int order);$/;"	p	typeref:typename:double	signature:(double x,double y,double * store,int order)
+fit_rms_window	mathematic.c	/^double fit_rms_window(double *x,double *y,int size,double *store,int order){$/;"	f	typeref:typename:double	signature:(double * x,double * y,int size,double * store,int order)
+fit_rms_window	mathematic.h	/^double fit_rms_window(double *x,double *y,int size,double *store,int order);$/;"	p	typeref:typename:double	signature:(double * x,double * y,int size,double * store,int order)
+fun2	mathematic.c	/^}fun2;$/;"	t	typeref:struct:__anonc6f179730108	file:
+gnuplot_create_t	plot.c	/^FILE* gnuplot_create_t(){$/;"	f	typeref:typename:FILE *	signature:()
+gnuplot_create_t	plot.h	/^FILE* gnuplot_create_t(void);$/;"	p	typeref:typename:FILE *	signature:(void)
+long_options	main.c	/^static struct option long_options[]={$/;"	v	typeref:struct:option[]	file:
+main	main.c	/^int main(int argc,char** argv){$/;"	f	typeref:typename:int	signature:(int argc,char ** argv)
+mice_dfa	main.c	/^void mice_dfa(int order, double *data,int line){$/;"	f	typeref:typename:void	signature:(int order,double * data,int line)
+mice_mean_std	main.c	/^void mice_mean_std(double *data,int line){$/;"	f	typeref:typename:void	signature:(double * data,int line)
+plot_cmd	plot.c	/^void plot_cmd(FILE* gnuplotPipe, char* command){$/;"	f	typeref:typename:void	signature:(FILE * gnuplotPipe,char * command)
+plot_cmd	plot.h	/^void plot_cmd(FILE* gnuplotPipe, char* command);$/;"	p	typeref:typename:void	signature:(FILE * gnuplotPipe,char * command)
+plot_dfa	plot.c	/^bool plot_dfa(char *filename,int order,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,int order,int width,int height)
+plot_dfa	plot.h	/^bool plot_dfa(int order,int width,int height);$/;"	p	typeref:typename:bool	signature:(int order,int width,int height)
+plot_dfas	plot.c	/^bool plot_dfas(char *filename,double *fit,int order,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,double * fit,int order,int width,int height)
+plot_dfas	plot.h	/^bool plot_dfas(int order,int width,int height);$/;"	p	typeref:typename:bool	signature:(int order,int width,int height)
+plot_std	plot.c	/^bool plot_std(char *filename ,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,int width,int height)
+plot_std	plot.h	/^bool plot_std(int width,int height);$/;"	p	typeref:typename:bool	signature:(int width,int height)
+polyfit	mathematic.c	/^polyfit(int size,           \/\/the total number of the data $/;"	f	typeref:typename:bool	signature:(int size,int degree,double * ddx,double * dy,double * store,double * coeff)
+polyfit	mathematic.h	/^polyfit(int size,       \/\/the total number of the data $/;"	p	typeref:typename:bool	signature:(int size,int degree,double * dx,double * dy,double * store,double * coeff)
+print_usage	main.c	/^void print_usage(){$/;"	f	typeref:typename:void	signature:()
+progressbar	bar.h	/^progressbar(char *head,         \/\/head title of this bar $/;"	f	typeref:typename:int	signature:(char * head,int percentage,int barlen)
+read_mice_file	file.c	/^double* read_mice_file(char* ifname, int *line){$/;"	f	typeref:typename:double *	signature:(char * ifname,int * line)
+read_mice_file	file.h	/^double* read_mice_file(char* ifname, int *line);$/;"	p	typeref:typename:double *	signature:(char * ifname,int * line)
+x	mathematic.c	/^    double x;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
+y	mathematic.c	/^    double y;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
