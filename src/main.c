@@ -22,8 +22,9 @@ static struct option long_options[]={
     {"graph",   no_argument,        0,  'g'},
     {"dfa",     required_argument,  0,  'd'},
     {"dfas",    required_argument,  0,  'D'},
-    {"mean-std",no_argument,        0,  'm'},
-    {"size",    required_argument,  0,  's'},
+    {"mean",    no_argument,        0,  'm'},
+    {"standard",no_argument,        0,  's'},
+    {"size",    required_argument,  0,  'S'},
     {"output",  required_argument,  0,  'o'},
     {0,         0,                  0,  0  }
 };
@@ -32,7 +33,8 @@ char *desc[]={
     "Show a graph at the end or not",
     "Exec dfa, followed by dfa order.",
     "Exec dfa for each segment, followed by dfa order.",
-    "Exec std/mean analysis",
+    "Exec mean analysis",
+    "Exec standard analysis",
     "Determint the dimensions of the graph",
     "Generate a pdf file for the graph, followed by a file",
     ""
@@ -52,38 +54,37 @@ void print_usage(void){
 
 void mice_dfa(int order, 
         double *data,
-        int line
+        double *fit, 
+        int head
         )
 {
     FILE* output;
     output = fopen("data","w");
 
-    int step = 1000;
-    double fit[2];
+    int step = 1200;
     double *fn,*n;
     int size = (int)(log10((double)step/5.0)*100);
     fn = (double*)malloc(sizeof(double)*size);
     n = (double*)malloc(sizeof(double)*size);
     double hurst,mean;
-    line -= step;
 
-    for(int i=0;i<=line;i+=step){
-        mean = gsl_stats_mean(data+i,1,step);
-        data[i] -= mean;
-        for(int j=i+1;j<i+step;j++){
-            data[j] -= mean;
-            data[j] += data[j-1];
-        }
-        hurst = detrend_flucuation(order,data+i,step,fn,n,&size,fit);
-        fprintf(output,"%d\t%lf\n",i,hurst);
+    mean = gsl_stats_mean(data+head,1,step);
+    data[head] -= mean;
+    for(int j=head+1;j<head+step;j++){
+        data[j] -= mean;
+        data[j] += data[j-1];
     }
+    hurst = detrend_flucuation(order,data+head,step,fn,n,&size,fit);
+    for(int i=0;i<size;i++){
+        fprintf(output,"%.10f\t%.10f\n",n[i],log10(fn[i]));
+    }
+
     free(fn);
     free(n);
     fclose(output);
 }
-void mice_dfas(char *filename, 
-        double *fit, 
-        int order, 
+
+void mice_dfas(int order, 
         double *data,
         int line
         )
@@ -91,7 +92,7 @@ void mice_dfas(char *filename,
     FILE* output;
     output = fopen("data","w");
 
-    int step = 1000;
+    int step = 1200;
     double fit[2];
     double *fn,*n;
     int size = (int)(log10((double)step/5.0)*100);
@@ -115,36 +116,82 @@ void mice_dfas(char *filename,
     fclose(output);
 }
 
-void mice_mean_std(double *data,
+void mice_std(double *func,
+        double *data,
         int line
         )
 {
-    int step = 600;
+    int step = 1200;
+    FILE* output;
+    output = fopen("data","w");
+    double stddev =0;
+
+    int size = line /step +1;
+    double *std;
+    double *x; 
+    std = (double *)malloc(sizeof(double)*size);
+    x = (double *)malloc(sizeof(double)*size);
+
+    int j=0;
+    for(int i=0;i<=line;i+=step){
+        if(i+step>line){
+            stddev= stats_std(data+i,line - i);
+        }else{
+            stddev= stats_std(data+i,step);
+        }
+        fprintf(output,"%f\t%10lf\n",i*6.0/3600.0,stddev);
+        x[j] = i/600.0*4*M_PI/30;
+        std[j] = stddev;
+        j++;
+    }
+    fit_sin4(func,x,std,size);
+    free(x);
+    free(std);
+    fclose(output);
+}
+
+void mice_mean(double *func,
+        double *data,
+        int line
+        )
+{
+    int step = 1200;
     FILE* output;
     output = fopen("data","w");
     double mean =0;
-    double stddev =0;
+
+    int size = line /step +1;
+    double *means;
+    double *x; 
+    means = (double *)malloc(sizeof(double)*size);
+    x = (double *)malloc(sizeof(double)*size);
+
+    int j=0;
     for(int i=0;i<=line;i+=step){
         if(i+step>line){
-            mean = gsl_stats_mean(data+i,1,line - i);
-            stddev= gsl_stats_sd(data+i,1,line - i);
+            mean = stats_mean(data+i,line - i);
         }else{
-            mean = gsl_stats_mean(data+i,1,step);
-            stddev= gsl_stats_sd(data+i,1,step);
+            mean = stats_mean(data+i,step);
         }
-        fprintf(output,"%d\t%10lf\t%10lf\n",i,mean,stddev);
+        fprintf(output,"%f\t%10lf\n",i*6.0/3600.0,mean);
+        x[j] = i/600.0*2*M_PI/15;
+        means[j] = mean;
+        j++;
     }
+    fit_sin4(func,x,means,size);
+    free(x);
+    free(means);
     fclose(output);
 }
 
 int main(int argc,char** argv){
     int width, height; 
-    int ifflag =0 , sizef=0 , graphf=0, dfaf=0, mean_stdf=0 ,outputf =0,dfasf =0; /*flags hahah*/
+    int ifflag =0 , sizef=0 , graphf=0, dfaf=0, meanf=0 ,stdf=0 ,outputf =0,dfasf =0; /*flags hahah*/
     char ifname[255], outname[255];
     int long_index = 0, opt = 0, order = 1;
 
     /* Read parameters from command line; */
-    while((opt = getopt_long(argc,argv,"f:gd:D:ms:o:",long_options,&long_index)) != -1){
+    while((opt = getopt_long(argc,argv,"f:gd:D:msS:o:",long_options,&long_index)) != -1){
         switch(opt){
             case 'f': ifflag = 1;
                       strcpy(ifname,optarg);
@@ -160,9 +207,13 @@ int main(int argc,char** argv){
                       dfaf =0;
                       order = atoi(optarg);
                       break; 
-            case 'm': mean_stdf = 1;
+            case 'm': meanf = 1;
+                      stdf = 0;
                       break;
-            case 's': sizef = 1;
+            case 's': stdf = 1;
+                      meanf = 0;
+                      break;
+            case 'S': sizef = 1;
                       graphf = 1;
                       sscanf(optarg,"%dx%d",&width,&height);
                       break;
@@ -201,27 +252,34 @@ int main(int argc,char** argv){
         height = 450;
     }
 
+    double fit[2];
+    double func[4];
     /* Start to plot diagrams */ 
     if(graphf){
         if(dfaf){
-            mice_dfa(order,in_data,line);
-            plot_dfa(order,width,height);
+            mice_dfa(order,in_data,fit,1000);
+            plot_dfa("data",fit,order,width,height);
         }else if(dfasf){
-            double fit[2];
             mice_dfas(order,in_data,line);
-            plot_dfas("data",fit,order,width,height);
+            plot_dfas("data",order,width,height);
         }
-        if(mean_stdf){
-            mice_mean_std(in_data,line);
-            plot_std(width,height);
+        if(stdf){
+            mice_std(func,in_data,line);
+            plot_std(func,"data",width,height);
+        }else if(meanf){
+            mice_mean(func,in_data,line);
+            plot_mean(func,"data",width,height);
         }
     }else{
-        if(dfaf)
-            mice_dfa(order,in_data,line);
-        else if(dfasf)
-            mice_dfas();
-        if(mean_stdf)
-            mice_mean_std(in_data,line);
+        if(dfaf){
+            mice_dfa(order,in_data,fit,line);
+        }else if(dfasf)
+            mice_dfas(order,in_data,line);
+        if(stdf){
+            mice_std(func,in_data,line);
+        }else if(meanf){
+            mice_mean(func,in_data,line);
+        }
     }
 
 

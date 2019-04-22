@@ -27,3 +27,11 @@ double detrend_flucuation(int order, double *y, int num, double *fn, double *n, 
 double fit_rms_window(double *x,double *y,int size,double *store,int order);
 
 double fit_diff(double x,double y,double *store,int order);
+
+double stats_std(double *data,int size);
+
+double stats_var(double* data, int size);
+
+double stats_mean(double *data,int size); 
+
+int fit_sin4(double *func,double *x,double *y,int size);

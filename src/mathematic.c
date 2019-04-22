@@ -188,3 +188,63 @@ double fit_diff(double x,double y,double *store,int order){
     }
     return  expect - y;
 }
+
+double stats_std(double *data,int size){
+    return sqrt(stats_var(data,size));
+}
+
+double stats_var(double* data, int size){
+    double mean = stats_mean(data,size);
+    double sum =0;
+    for(int i=0;i<size;i++){
+        sum += pow((data[i] - mean),2.0);
+    }
+    sum /= size;
+    return sum;
+}
+
+double stats_mean(double *data,int size){
+    double sum =0;
+    for(int i=0;i<size;i++){
+        sum += data[i];
+    }
+    sum /= size;
+    return sum;
+}
+
+int fit_sin4(double *func,double *x,double *y,int size){
+    gsl_matrix *X, *cov;
+    gsl_vector *Y,*c;
+
+    X = gsl_matrix_alloc (size, 5);
+    Y = gsl_vector_alloc (size);
+
+    c = gsl_vector_alloc (5);
+    cov = gsl_matrix_alloc (5, 5);
+
+    for(int i=0;i<size;i++){
+        gsl_matrix_set (X, i, 0, 1.0);
+        gsl_matrix_set (X, i, 1, sin(x[i]));
+        gsl_matrix_set (X, i, 2, cos(x[i]));
+        gsl_matrix_set (X, i, 3, sin(2*x[i]));
+        gsl_matrix_set (X, i, 4, cos(2*x[i]));
+
+        gsl_vector_set (Y, i, y[i]);
+    }
+
+    double chisq;
+    gsl_multifit_linear_workspace * work
+        = gsl_multifit_linear_alloc (size, 5);
+    gsl_multifit_linear (X, Y, c, cov,
+            &chisq, work);
+    for(int i=0;i<5;i++){
+        func[i] = gsl_vector_get(c,i);
+    }
+    gsl_multifit_linear_free (work);
+
+    gsl_matrix_free (X);
+    gsl_vector_free (Y);
+    gsl_vector_free (c);
+    gsl_matrix_free (cov);
+    return 1;
+}

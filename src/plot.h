@@ -6,13 +6,17 @@
 *************************************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 FILE* gnuplot_create_t(void);
 
 void plot_cmd(FILE* gnuplotPipe, char* command);
 
-bool plot_std(int width,int height);
+bool plot_mean(double *func,char *filename,int width,int height);
 
-bool plot_dfa(int order,int width,int height);
+bool plot_std(double *func,char *filename,int width,int height);
 
-bool plot_dfas(int order,int width,int height);
+bool plot_dfas(char *filename,int order,int width,int height);
+
+bool plot_dfa(char *filename,double *fit,int order,int width,int height);
