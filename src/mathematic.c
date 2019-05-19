@@ -48,8 +48,8 @@ polyfit(int size,           //the total number of the data
     dx = (double*)malloc(sizeof(double)*size);
     for(int i=0;i<size;i++){
         dx[i]=ddx[i]-meanx;
-        //printf("%lf\t",dx[i]);
-        //printf("%lf\n",dy[i]);
+        /* printf("%lf\t",ddx[i]); */
+        /* printf("%lf\n",dy[i]); */
     }
 
     for(i=0; i < size; i++) {
@@ -94,7 +94,7 @@ typedef struct{
  * A dfa program using gsl polynomial regression fit function.
  *
  * Author: Yiwen
- * Date: 26/3/2019
+ * Date: 15/4/2019
  * */
 
 double 
@@ -108,69 +108,73 @@ detrend_flucuation(
         double *fit                     //final fit function
 )
 {
+    if (num < 1000 ){
+        printf ("The data samples is not enough.");
+        return 0;
+    }
+
+    /* first, You should remove the mean, and make a integration */ 
+    double mean = gsl_stats_mean(y,1,num);
+    
+    double *tempy = (double*)malloc(sizeof(double)*num);
+    tempy[0] = y[0] - mean;
+    for(int i=1;i<num;i++){
+        tempy[i] = y[i] - mean + tempy[i-1];
+    }
+
+
     int size = *ssize;
     double *x = (double *)malloc(sizeof(double)*num);
     for(int i=0;i<num;i++)
         x[i] = i;
     double max = log10 ((double) num/5.0);
-    /* Check the size of this data, if it is too small, I will not do the dfa */
-    if (max < 2.0 ){
-        printf ("The data samples is not enough.");
-    }
 
     order ++;
     double *store;
-    double coeff;
+    double coeff=0;
 
     store=(double *)malloc(sizeof(double)*order);
     double errorsq=0.0; 
 
-    /* array to store the data samples of f(n)~n */
-    /* And Initializing */ 
     for(int i=0;i<size;i++){
-        *(fn+i) = 0.0;
-        *(n+i) = 0.0;
+        fn[i] = 0.0;
+        n[i] = 0.0;
     }
 
     int seq=0; // index of f(n)~n
-
+    int length =0, end = 0,tail =0;
     for (double i=log10 ((double)(order + 2)); i<max; i+=0.1){ 
-        /* for each loop, there wilbe a new end point, and a new length. */
-        int length = (int)pow(10,i);
-        int end = num - length; 
-        /* Loop for slice the profile into several segments */ 
-        /* and for each segments, calculate the errors at the end. */
+        length = (int)pow(10,i);
+        end = num - length; 
         for (int j=0; j < end; j+= length){
-            /* slice the profile into many equal-size windows "USING POINTER!!" */
-            polyfit (length,order,(x),(y+j),store,&coeff);
-            /* Calculate the differencesq between the fit function and origin data. */
-            *(fn+seq) += fit_rms_window(x,(y+j),length,store,order);
+            polyfit (length,order,(x),(tempy+j),store,&coeff);
+            fn[seq] += fit_rms_window(x,(tempy+j),length,store,order);
+            
+            tail = j + length -1;
         }
-        /* Then we get the final smaple point for one selected 
-         * segment size */
-        *(n+seq) = length;
-        *(fn+seq) = sqrt(*(fn+seq)/(double)num);
+        n[seq] = length;
+        fn[seq] = sqrt(*(fn+seq)/(double)num);
         seq ++;
     }
-    /* get a new array to store the log10() of the error function f(n) */
+
     double *log10fn ;
     double *log10n ;
     log10n = (double *)malloc(sizeof(double )*size);
     log10fn = (double *)malloc(sizeof(double )*size);
-    for(int i=0;i<size;i++){
-        *(log10fn+i) = log10(*(fn+i));
-        *(log10n+i) = log10(*(n+i));
+    for(int i=0;i<seq;i++){
+        log10fn[i] = log10(fn[i]);
+        log10n[i] = log10(n[i]);
     }
-    /* At the end, do a linear square least fit for f(n)~n */ 
-    /* Here use seq as the length of data, because maybe there are elements that are not */ 
-    /* calculated, for example log10fn[end-1] were not calculated. */
-    polyfit(seq-1,2,log10n+1,log10fn+1,fit,&coeff);
 
-    *ssize = seq-1; 
-    /* The final result will be achieved through *fit and *fn *n 
-     * and returned value is the hurst value of this data smaple */
+    polyfit(seq,2,log10n,log10fn,fit,&coeff);
+
+    *ssize = seq; 
+    free(x);
     free(store);
-    return *(fit+1);
+    free(tempy);
+    free(log10fn);
+    free(log10n);
+    return fit[1];
 }
 
 double fit_rms_window(double *x,double *y,int size,double *store,int order){
@@ -181,12 +185,14 @@ double fit_rms_window(double *x,double *y,int size,double *store,int order){
     return rms;
 }
 
+/* The except value - origin value */ 
 double fit_diff(double x,double y,double *store,int order){
-    double expect;
+    double expect = 0; // double expect; WRONG!!! BC Value must be initializaed !!!!!!!!!!!!
     for(int l=0;l<order;l++){
         expect += store[l] * pow(x,(double)l);
     }
-    return  expect - y;
+    expect -= y;
+    return  expect;
 }
 
 double stats_std(double *data,int size){
@@ -232,7 +238,7 @@ int fit_sin4(double *func,double *x,double *y,int size){
         gsl_vector_set (Y, i, y[i]);
     }
 
-    double chisq;
+    double chisq =0;
     gsl_multifit_linear_workspace * work
         = gsl_multifit_linear_alloc (size, 5);
     gsl_multifit_linear (X, Y, c, cov,
