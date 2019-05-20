@@ -11,5 +11,10 @@
 
 #define BUFFER_SIZE 1024
 
-//bool wrist_csv(char* );
-double* read_mice_file(char* ifname, int *line);
+int setmem_double(double *data,int size, double def);
+
+int file_lines(char *);
+
+double* read_mice_file(char *, int *);
+
+double *single_colum_data(char *, int *);
