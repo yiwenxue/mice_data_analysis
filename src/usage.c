@@ -93,7 +93,7 @@ void mice_std(double *func,
         std[j] = stddev;
         j++;
     }
-    fit_sin4(func,x,std,size);
+    /* fit_sin4(func,x,std,size); */
     free(x);
     free(std);
     fclose(output);
@@ -227,7 +227,7 @@ int dfa_mean_dev(char *filename, int breakpoint, int order){
     //finished !!! 
     //
     double func[5];
-    fit_sin4(func,xx,meany,16);
+    cosinor(xx,meany,16,func,5);
 
     //Wants to print the results into a file;
     FILE *output; 
@@ -258,8 +258,8 @@ int dfa_mean_dev(char *filename, int breakpoint, int order){
     plot_cmd(plo,"set xrange [0:48]");
     /* plot_cmd(plo,"plot \'data\' with lines lw 1 lt 5 notitle"); */
     double t = (M_PI/12);
-    sprintf(cmd,"plot \'data\' with points ps 1.5 notitle, %lf+%lf*sin(%f*x)+%lf*cos(%f*x)+%lf*sin(2*%f*x)+%lf*cos(2*x*%f) title \'Fit\'",
-            func[0],func[1],t,func[2],t,func[3],t,func[4],t);
+    sprintf(cmd,"plot \'data\' with points ps 1.5 notitle, %lf+%lf*cos( %lf*x + %lf ) + %lf*cos(%lf*x + %lf) title \'Fit\'",
+            func[0],func[1],t,func[2],func[3],2*t,func[4]);
     plot_cmd(plo,cmd);
 
     free(yy);free(xx);free(x);free(y);free(fn);free(n);
