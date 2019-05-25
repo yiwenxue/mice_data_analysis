@@ -9,9 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include "mathematic.h"
-#include "plot.h"
-#include "file.h"
+#include "usage.h"
 
 
 /* This is a structure that stores the options and the following */ 
@@ -52,137 +50,6 @@ void print_usage(void){
     }
 }
 
-void mice_dfa(int order, 
-        double *data,
-        double *fit, 
-        int head
-        )
-{
-    FILE* output;
-    output = fopen("data","w");
-
-    int step = 1200;
-    double *fn,*n;
-    int size = (int)(log10((double)step/5.0)*100);
-    fn = (double*)malloc(sizeof(double)*size);
-    n = (double*)malloc(sizeof(double)*size);
-    double hurst,mean;
-
-    mean = gsl_stats_mean(data+head,1,step);
-    data[head] -= mean;
-    for(int j=head+1;j<head+step;j++){
-        data[j] -= mean;
-        data[j] += data[j-1];
-    }
-    hurst = detrend_flucuation(order,data+head,step,fn,n,&size,fit);
-    for(int i=0;i<size;i++){
-        fprintf(output,"%.10f\t%.10f\n",n[i],log10(fn[i]));
-    }
-
-    free(fn);
-    free(n);
-    fclose(output);
-}
-
-void mice_dfas(int order, 
-        double *data,
-        int line
-        )
-{
-    FILE* output;
-    output = fopen("data","w");
-
-    int step = 1200;
-    double fit[2];
-    double *fn,*n;
-    int size = (int)(log10((double)step/5.0)*100);
-    fn = (double*)malloc(sizeof(double)*size);
-    n = (double*)malloc(sizeof(double)*size);
-    double hurst,mean;
-    line -= step;
-
-    for(int i=0;i<=line;i+=step){
-        mean = gsl_stats_mean(data+i,1,step);
-        data[i] -= mean;
-        for(int j=i+1;j<i+step;j++){
-            data[j] -= mean;
-            data[j] += data[j-1];
-        }
-        hurst = detrend_flucuation(order,data+i,step,fn,n,&size,fit);
-        fprintf(output,"%d\t%lf\n",i,hurst);
-    }
-    free(fn);
-    free(n);
-    fclose(output);
-}
-
-void mice_std(double *func,
-        double *data,
-        int line
-        )
-{
-    int step = 1200;
-    FILE* output;
-    output = fopen("data","w");
-    double stddev =0;
-
-    int size = line /step +1;
-    double *std;
-    double *x; 
-    std = (double *)malloc(sizeof(double)*size);
-    x = (double *)malloc(sizeof(double)*size);
-
-    int j=0;
-    for(int i=0;i<=line;i+=step){
-        if(i+step>line){
-            stddev= stats_std(data+i,line - i);
-        }else{
-            stddev= stats_std(data+i,step);
-        }
-        fprintf(output,"%f\t%10lf\n",i*6.0/3600.0,stddev);
-        x[j] = i/600.0*4*M_PI/30;
-        std[j] = stddev;
-        j++;
-    }
-    fit_sin4(func,x,std,size);
-    free(x);
-    free(std);
-    fclose(output);
-}
-
-void mice_mean(double *func,
-        double *data,
-        int line
-        )
-{
-    int step = 1200;
-    FILE* output;
-    output = fopen("data","w");
-    double mean =0;
-
-    int size = line /step +1;
-    double *means;
-    double *x; 
-    means = (double *)malloc(sizeof(double)*size);
-    x = (double *)malloc(sizeof(double)*size);
-
-    int j=0;
-    for(int i=0;i<=line;i+=step){
-        if(i+step>line){
-            mean = stats_mean(data+i,line - i);
-        }else{
-            mean = stats_mean(data+i,step);
-        }
-        fprintf(output,"%f\t%10lf\n",i*6.0/3600.0,mean);
-        x[j] = i/600.0*2*M_PI/15;
-        means[j] = mean;
-        j++;
-    }
-    fit_sin4(func,x,means,size);
-    free(x);
-    free(means);
-    fclose(output);
-}
 
 int main(int argc,char** argv){
     int width, height; 
@@ -242,10 +109,6 @@ int main(int argc,char** argv){
         return -1;
     }
 
-    //for(int i=0;i<line;i++){
-    //    printf("%d\t%3.4lf\n",i,in_data[i]);
-    //}
-
     /* Default size of the plot; */
     if(!sizef){
         width = 600;
@@ -255,9 +118,11 @@ int main(int argc,char** argv){
     double fit[2];
     double func[4];
     /* Start to plot diagrams */ 
+    printf("size = %d\n",line);
     if(graphf){
         if(dfaf){
-            mice_dfa(order,in_data,fit,1000);
+            mice_dfa(order,in_data,fit,0);
+            printf("y = %.3f*x + %.3f\n",fit[1],fit[0]);
             plot_dfa("data",fit,order,width,height);
         }else if(dfasf){
             mice_dfas(order,in_data,line);
@@ -272,13 +137,15 @@ int main(int argc,char** argv){
         }
     }else{
         if(dfaf){
-            mice_dfa(order,in_data,fit,line);
+            mice_dfa(order,in_data,fit,0);
         }else if(dfasf)
             mice_dfas(order,in_data,line);
         if(stdf){
             mice_std(func,in_data,line);
         }else if(meanf){
-            mice_mean(func,in_data,line);
+            dfa_mean_dev(ifname,7056,3);
+            /* check_circadian(ifname,7056); */
+            /* mice_mean(func,in_data,line); */
         }
     }
 

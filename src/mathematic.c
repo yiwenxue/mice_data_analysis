@@ -85,11 +85,6 @@ polyfit(int size,           //the total number of the data
     return true;
 }
 
-typedef struct{
-    double x;
-    double y;
-}fun2;
-
 /*
  * A dfa program using gsl polynomial regression fit function.
  *
@@ -98,14 +93,13 @@ typedef struct{
  * */
 
 double 
-detrend_flucuation(
-        int order,                      //order of DFA
-        double *y,                      //Time series data 
-        int num,                        //total number of data samples 
-        double *fn,                     //fn of dfa function 
-        double *n,                      //n of dfa function 
-        int *ssize,                       //size of dfa function 
-        double *fit                     //final fit function
+detrend_flucuation(int order,                      //order of DFA
+                   double *y,                      //Time series data 
+                   int num,                        //total number of data samples 
+                   double *fn,                     //fn of dfa function 
+                   double *n,                      //n of dfa function 
+                   int *ssize,                       //size of dfa function 
+                   double *fit                     //final fit function
 )
 {
     if (num < 1000 ){
@@ -177,7 +171,13 @@ detrend_flucuation(
     return fit[1];
 }
 
-double fit_rms_window(double *x,double *y,int size,double *store,int order){
+double 
+fit_rms_window(double *x,
+                      double *y,
+                      int size,
+                      double *store,
+                      int order)
+{
     double rms = 0.0;
     for(int i=0;i<size;i++){
         rms += pow(fit_diff(x[i],y[i],store,order),2.0);
@@ -186,7 +186,12 @@ double fit_rms_window(double *x,double *y,int size,double *store,int order){
 }
 
 /* The except value - origin value */ 
-double fit_diff(double x,double y,double *store,int order){
+double 
+fit_diff(double x,
+                double y,
+                double *store,
+                int order)
+{
     double expect = 0; // double expect; WRONG!!! BC Value must be initializaed !!!!!!!!!!!!
     for(int l=0;l<order;l++){
         expect += store[l] * pow(x,(double)l);
@@ -195,11 +200,17 @@ double fit_diff(double x,double y,double *store,int order){
     return  expect;
 }
 
-double stats_std(double *data,int size){
+double 
+stats_std(double *data,
+                 int size)
+{
     return sqrt(stats_var(data,size));
 }
 
-double stats_var(double* data, int size){
+double 
+stats_var(double* data, 
+                 int size)
+{
     double mean = stats_mean(data,size);
     double sum =0;
     for(int i=0;i<size;i++){
@@ -209,7 +220,10 @@ double stats_var(double* data, int size){
     return sum;
 }
 
-double stats_mean(double *data,int size){
+double 
+stats_mean(double *data,
+                  int size)
+{
     double sum =0;
     for(int i=0;i<size;i++){
         sum += data[i];
@@ -218,39 +232,66 @@ double stats_mean(double *data,int size){
     return sum;
 }
 
-int fit_sin4(double *func,double *x,double *y,int size){
+int 
+cosinor(double *x,
+            double *y,
+            int size,
+            double *store,
+            int degree /*(2*N+1)*/)
+{
     gsl_matrix *X, *cov;
-    gsl_vector *Y,*c;
+    gsl_vector *Y, *c;
 
-    X = gsl_matrix_alloc (size, 5);
+    X = gsl_matrix_alloc (size,degree);
     Y = gsl_vector_alloc (size);
 
-    c = gsl_vector_alloc (5);
-    cov = gsl_matrix_alloc (5, 5);
+    c = gsl_vector_alloc (degree);
+    cov = gsl_matrix_alloc (degree,degree);
 
-    for(int i=0;i<size;i++){
+    double t = 0;
+    double constant =0;
+    for(int i=0;i<size;i++)
+    {
         gsl_matrix_set (X, i, 0, 1.0);
-        gsl_matrix_set (X, i, 1, sin(x[i]));
-        gsl_matrix_set (X, i, 2, cos(x[i]));
-        gsl_matrix_set (X, i, 3, sin(2*x[i]));
-        gsl_matrix_set (X, i, 4, cos(2*x[i]));
-
         gsl_vector_set (Y, i, y[i]);
     }
+    for(int j=1;j<degree;j+=2)
+    {
+        t = 24.0/(j+1)*2.0;
+        constant = 2*M_PI/t;
+        /* printf("t = %f\n",t); */
 
-    double chisq =0;
-    gsl_multifit_linear_workspace * work
-        = gsl_multifit_linear_alloc (size, 5);
-    gsl_multifit_linear (X, Y, c, cov,
-            &chisq, work);
-    for(int i=0;i<5;i++){
-        func[i] = gsl_vector_get(c,i);
+        for(int i=0;i<size;i++)
+        {
+            gsl_matrix_set (X, i, j, cos(constant * x[i]));
+            gsl_matrix_set (X, i, j+1, sin(constant * x[i]));
+            /* printf ("%d: %d\t%d\n", i, j, j+1); */
+        }
     }
-    gsl_multifit_linear_free (work);
+
+    double chisq = 0.0;
+    gsl_multifit_linear_workspace *ws 
+        = gsl_multifit_linear_alloc (size,degree);
+    gsl_multifit_linear (X, Y, c, cov, &chisq, ws);
+
+    for(int i=0;i<degree;i++){
+        store[i] = gsl_vector_get (c,i);
+    }
+    double phi=0.0,amp = 0.0;
+    for(int j=1;j<degree;j+=2){
+        amp = sqrt( (store[j]*store[j]) + (store[j+1]*store[j+1]) );
+        phi = atan(  -1 * store[j+1] / store[j] );
+        store[j] = amp;
+        store[j+1] = phi;
+    }
+
+    gsl_multifit_linear_free (ws);
 
     gsl_matrix_free (X);
     gsl_vector_free (Y);
     gsl_vector_free (c);
     gsl_matrix_free (cov);
-    return 1;
+
+    return 1; 
 }
+
