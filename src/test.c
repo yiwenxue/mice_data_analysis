@@ -1,5 +1,5 @@
 /*************************************************************************
-    > File Name: main.c
+    > File Name: test.c
     > Author: Yiwen Xue
     > Mail: 15225434259xue@gmail.com 
     > Created Time: Wed 17 Apr 2019 07:35:07 PM IDT
@@ -12,6 +12,44 @@
 #include "file.h"
 #include "utility.c"
 
+int divide_name(char *inname,char *path, char *name, char *type){
+    char *tag;
+    char *backup;
+    backup = inname;
+    //GET THE PATH TO THE FOLDER
+    tag = strchr(backup,'/');
+    while(tag != NULL){
+        backup = tag+1;
+        tag = strchr(backup,'/');
+    }
+    int i=0;
+    while(inname+i < backup){
+        path[i] = inname[i];
+        i++;
+    }
+
+    //get the animal name
+    tag = strchr(backup,'.');
+    i=0;
+    while(backup+i < tag){
+        name[i] = backup[i];
+        i++;
+    }
+    backup = tag+1;
+
+    //GET THE TYPE;
+    tag = strchr(backup,'.');
+    if(tag == NULL){
+        printf("END\n");
+        return -1;
+    }
+    i=0;
+    while(backup+i < tag){
+        type[i] = backup[i];
+        i++;
+    }
+    return 0;
+}
 
 /* This is a structure that stores the options and the following */ 
 /* array of strings are the description to these options */
@@ -37,7 +75,7 @@ char *desc[]={
     "Exec dfa, followed by dfa order.",
     "Exec mean analysis",
     "Exec standard analysis",
-    "The type of graph. [ GINDIVIDUAL | GAVERAGE | GDEVIATION]",
+    "The type of graph. [ GINDIVIDUAL | GAVERAGE ]",
     "Check if the period equals to 24h",
     "Set the duration of a single segment, 1 = 10sec (1080 = 3h)",
     "Set the whole length of individual dfa, 1 = 10sec",
@@ -145,40 +183,27 @@ int main(int argc,char** argv){
     }
     /* Check if there is a data file, and readin data if true*/ 
    double *data; 
-   int lines = 0;
+   int lines;
 
-   char name[255],type[255],path[255];
-   memset(name,'\0',255);
-   memset(path,'\0',255);
-   memset(type,'\0',255);
 
    //readin data with check process
    if(ifflag){
        if(iftypef){
            if(!strcmp(iftype,"MICE_DATA")){
                filetype = MICE_DATA;
-               data = read_mice_file(ifname,&lines);
+               /* data = read_mice_file(ifname,&lines); */
            }else if(!strcmp(iftype,"SINGLE_COLUM")){
                filetype = SINGLE_COLUM;
-               data = read_single_colum_data(ifname,&lines);
+               /* data = read_single_colum_data(ifname,&lines); */
            }else{
                fprintf(stderr,"File types: MICE_DATA | SINGLE_COLUM\n");
                return 0;
            }
-       }else{
+       }else
            filetype = MICE_DATA;
-           data = read_mice_file(ifname,&lines);
-       }
-       printf("lines: %d\n",lines);
    }else{
        fprintf(stderr,"An input data file is needed.\n");
        return 0;
-   }
-
-   if(filetype == MICE_DATA){
-       //CHEKC THE MICE_DATA FILE THYE
-       mice_name(ifname,path,name,type);
-       /* printf("name: %s\ntype: %s\npath: %s\n",name,type,path); */
    }
 
    //set graph type;
@@ -201,16 +226,23 @@ int main(int argc,char** argv){
        return 0;
    }
 
+   char name[255],type[255],path[255];
+   memset(name,'\0',255);
+   memset(path,'\0',255);
+   memset(type,'\0',255);
+   printf("name:%s\ntype:%s\n",name,type);
+   divide_name(ifname,path,name,type);
+   printf("name:%s\ntype:%s\npath:%s\n",name,type,path);
+
    if(dfaf){
-        mice_dfa(name,type,data,lines,order,duration,graphtype,outputf,outname);
+       printf("DFA MODE\nOrder = %d", order);
    }else if(meanf){
-        mice_mean(name,type,data,lines,duration,graphtype,outputf,outname);
+       ;
    }else if(stdf){
-        mice_std(name,type,data,lines,duration,graphtype,outputf,outname);
+       ;
    }else if(checkf){
        ;
    }
-   free(data);
 
     return 0;
 }

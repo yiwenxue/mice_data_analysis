@@ -56,7 +56,9 @@ double* read_mice_file(char* ifname, int *line){
                 *line -= i;
                 i=0;
             }
-            in_data[i] = tempy;
+            if(!isnan(tempy))
+                in_data[i] = tempy;
+            else in_data[i] = in_data[i-1];
             tempxx = tempx;
         }
         else {
@@ -70,7 +72,7 @@ double* read_mice_file(char* ifname, int *line){
     return in_data;
 }
 
-double* single_colum_data(char *ifname,int *lines){
+double* read_single_colum_data(char *ifname,int *lines){
     //Count the total lines;
     *lines = file_lines (ifname);
 

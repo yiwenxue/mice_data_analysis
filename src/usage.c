@@ -191,8 +191,8 @@ int dfa_mean_dev(char *filename, int breakpoint, int order){
     for(int j=0;j<18;j++){
         for(int i=0;i<16;i++){
             xx[j*16+i] = i*3+1.5; // hours
-            yy[j*16+i] = detrend_flucuation(order,y+(j*17280+i*1080),1080,fn,n,&ssize,fit); //mean value for every 3 hours 
-            /* yy[j*16+i] = gsl_stats_mean(y+(j*17280+i*1080),1,1080); //mean value for every 3 hours */ 
+            /* yy[j*16+i] = detrend_flucuation(order,y+(j*17280+i*1080),1080,fn,n,&ssize,fit); //mean value for every 3 hours */ 
+            yy[j*16+i] = gsl_stats_mean(y+(j*17280+i*1080),1,1080); //mean value for every 3 hours 
             /* yy[j*16+i] = gsl_stats_sd(y+(j*17280+i*1080),1,1080); //mean value for every 3 hours */ 
             /* printf("%d = %f\n",i,yy[j*16+i]); */
         }
@@ -217,24 +217,20 @@ int dfa_mean_dev(char *filename, int breakpoint, int order){
     printf("meant = %f\n",meant);
     //calculation of deviation;
     for(int i=0;i<16;i++){
-        /* for(int j=0;j<18;j++){ */
-            devy[i] = meany[i] - meant;
-        /* } */
-        /* devy[i] /= 18.0; */
-        /* devy[i] = sqrt(devy[i]); */
-        devy[i] /= meany[i] /100.0;
+        devy[i] = meany[i] - meant;
+        devy[i] = devy[i] /meany[i] *100.0;
     }
     //finished !!! 
     //
     double func[5];
-    cosinor(xx,meany,16,func,5);
+    fit_sin4(func,xx,meany,16);
 
     //Wants to print the results into a file;
     FILE *output; 
     output = fopen("data","w");
     for(int i=0;i<16;i++){
         /* fprintf(output,"%.2f\t%.3f\n",(i+0.5)*3.0,devy[i]); */
-        fprintf(output,"%.2f\t%.3f\n",i*3+0.5,meany[i]);
+        fprintf(output,"%.2f\t%.3f\n",i*3+1.5,meany[i]);
     }
     fclose(output);
 
@@ -258,9 +254,11 @@ int dfa_mean_dev(char *filename, int breakpoint, int order){
     plot_cmd(plo,"set xrange [0:48]");
     /* plot_cmd(plo,"plot \'data\' with lines lw 1 lt 5 notitle"); */
     double t = (M_PI/12);
-    sprintf(cmd,"plot \'data\' with points ps 1.5 notitle, %lf+%lf*cos( %lf*x + %lf ) + %lf*cos(%lf*x + %lf) title \'Fit\'",
-            func[0],func[1],t,func[2],func[3],2*t,func[4]);
+
+    sprintf(cmd,"plot \'data\' with points ps 1.5 notitle, %lf+%lf*sin(%f*x)+%lf*cos(%f*x)+%lf*sin(2*%f*x)+%lf*cos(2*x*%f) title \'Fit\'",
+            func[0],func[1],t,func[2],t,func[3],t,func[4],t);
     plot_cmd(plo,cmd);
+
 
     free(yy);free(xx);free(x);free(y);free(fn);free(n);
     return 0;

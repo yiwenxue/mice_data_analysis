@@ -8,8 +8,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <malloc.h>
+#include <math.h>
 
-#define BUFFER_SIZE 1024
+typedef enum{
+    MICE_DATA,
+    SINGLE_COLUM
+}Ftype;
 
 int setmem_double(double *data,int size, double def);
 
@@ -17,4 +21,4 @@ int file_lines(char *);
 
 double* read_mice_file(char *, int *);
 
-double *single_colum_data(char *, int *);
+double *read_single_colum_data(char *, int *);

@@ -1,23 +1,21 @@
 /*************************************************************************
-    > File Name: usage.h
+    > File Name: utility.h
     > Author: Yiwen Xue
     > Mail: 15225434259xue@gmail.com 
     > Created Time: Tue 07 May 2019 06:26:16 PM IDT
 *************************************************************************/
 
+#include <string.h>
 #include "mathematic.h"
 #include "plot.h"
-#include "file.h"
 
-void mice_dfa(int order, double *data,double *fit, int head);
+int mice_name(char *inname,char *path, char *name, char *type);
 
-void mice_dfas(int order, double *data,int line);
+int mice_dfa(char *name, char *type, double *data, int size, int order, int duration, Gtype graphtype, int outputf, char *outname);
 
-void mice_std(double *func,double *data,int line);
+int mice_mean(char *name, char *type, double *data, int size, int duration, Gtype graphtype, int outputf, char *outname);
 
-void mice_mean(double *func,double *data,int line);
+int mice_std(char *name, char *type, double *data, int size, int duration, Gtype graphtype, int outputf, char *outname);
 
 int check_circadian(char *filename,int breakpoint);
 
-int mean_dev(char *filename, int breakpoint, int order);
-int dfa_mean_dev(char *filename, int breakpoint, int order);

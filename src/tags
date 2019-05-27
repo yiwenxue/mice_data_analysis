@@ -5,37 +5,87 @@
 !_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
 !_TAG_PROGRAM_URL	https://ctags.io/	/official site/
 !_TAG_PROGRAM_VERSION	0.0.0	/45968eff/
-BUFFER_SIZE	file.h	/^#define BUFFER_SIZE /;"	d
-__anonc6f179730108	mathematic.c	/^typedef struct{$/;"	s	file:
-__anonc6f179730108::x	mathematic.c	/^    double x;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
-__anonc6f179730108::y	mathematic.c	/^    double y;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
+Ftype	file.h	/^}Ftype;$/;"	t	typeref:enum:__anonfd762ebb0103
+GAVERAGE	plot.h	/^    GAVERAGE,$/;"	e	enum:__anon1501f37a0103	access:public
+GDEVIATION	plot.h	/^    GDEVIATION$/;"	e	enum:__anon1501f37a0103	access:public
+GINDIVIDUAL	plot.h	/^    GINDIVIDUAL,$/;"	e	enum:__anon1501f37a0103	access:public
+Gtype	plot.h	/^}Gtype;$/;"	t	typeref:enum:__anon1501f37a0103
+MICE_DATA	file.h	/^    MICE_DATA,$/;"	e	enum:__anonfd762ebb0103	access:public
+SINGLE_COLUM	file.h	/^    SINGLE_COLUM$/;"	e	enum:__anonfd762ebb0103	access:public
+__anon1501f37a0103	plot.h	/^typedef enum{$/;"	g
+__anonfd762ebb0103	file.h	/^typedef enum{$/;"	g
+check_circadian	usage.c	/^int check_circadian(char *filename,int breakpoint){$/;"	f	typeref:typename:int	signature:(char * filename,int breakpoint)
+check_circadian	usage.h	/^int check_circadian(char *filename,int breakpoint);$/;"	p	typeref:typename:int	signature:(char * filename,int breakpoint)
+check_circadian	utility.c	/^int check_circadian(char *filename,int breakpoint){$/;"	f	typeref:typename:int	signature:(char * filename,int breakpoint)
+check_circadian	utility.h	/^int check_circadian(char *filename,int breakpoint);$/;"	p	typeref:typename:int	signature:(char * filename,int breakpoint)
+cosinor	mathematic.c	/^cosinor(double *x,$/;"	f	typeref:typename:int	signature:(double * x,double * y,int size,double * store,int degree)
+cosinor	mathematic.h	/^int cosinor(double *x,double *y,int size, double *store,int degree);$/;"	p	typeref:typename:int	signature:(double * x,double * y,int size,double * store,int degree)
 desc	main.c	/^char *desc[]={$/;"	v	typeref:typename:char * []
-detrend_flucuation	mathematic.c	/^detrend_flucuation($/;"	f	typeref:typename:double	signature:(int order,double * y,int num,double * fn,double * n,int * ssize,double * fit)
+desc	test.c	/^char *desc[]={$/;"	v	typeref:typename:char * []
+detrend_flucuation	dfa.c	/^detrend_flucuation($/;"	f	typeref:typename:double	signature:(int order,double * y,int num,double * fn,double * n,int * ssize,double * fit)
+detrend_flucuation	mathematic.c	/^detrend_flucuation(int order,                      \/\/order of DFA$/;"	f	typeref:typename:double	signature:(int order,double * y,int num,double * fn,double * n,int * ssize,double * fit)
 detrend_flucuation	mathematic.h	/^double detrend_flucuation(int order, double *y, int num, double *fn, double *n, int *ssize, doub/;"	p	typeref:typename:double	signature:(int order,double * y,int num,double * fn,double * n,int * ssize,double * fit)
-fit_diff	mathematic.c	/^double fit_diff(double x,double y,double *store,int order){$/;"	f	typeref:typename:double	signature:(double x,double y,double * store,int order)
+dfa_fnsize	utility.c	/^int dfa_fnsize(int num){$/;"	f	typeref:typename:int	signature:(int num)
+dfa_mean_dev	usage.c	/^int dfa_mean_dev(char *filename, int breakpoint, int order){$/;"	f	typeref:typename:int	signature:(char * filename,int breakpoint,int order)
+dfa_mean_dev	usage.h	/^int dfa_mean_dev(char *filename, int breakpoint, int order);$/;"	p	typeref:typename:int	signature:(char * filename,int breakpoint,int order)
+divide_name	test.c	/^int divide_name(char *inname,char *path, char *name, char *type){$/;"	f	typeref:typename:int	signature:(char * inname,char * path,char * name,char * type)
+file_lines	file.c	/^int file_lines(char *ifname){$/;"	f	typeref:typename:int	signature:(char * ifname)
+file_lines	file.h	/^int file_lines(char *);$/;"	p	typeref:typename:int	signature:(char *)
+fit_diff	mathematic.c	/^fit_diff(double x,$/;"	f	typeref:typename:double	signature:(double x,double y,double * store,int order)
 fit_diff	mathematic.h	/^double fit_diff(double x,double y,double *store,int order);$/;"	p	typeref:typename:double	signature:(double x,double y,double * store,int order)
-fit_rms_window	mathematic.c	/^double fit_rms_window(double *x,double *y,int size,double *store,int order){$/;"	f	typeref:typename:double	signature:(double * x,double * y,int size,double * store,int order)
+fit_rms_window	mathematic.c	/^fit_rms_window(double *x,$/;"	f	typeref:typename:double	signature:(double * x,double * y,int size,double * store,int order)
 fit_rms_window	mathematic.h	/^double fit_rms_window(double *x,double *y,int size,double *store,int order);$/;"	p	typeref:typename:double	signature:(double * x,double * y,int size,double * store,int order)
-fun2	mathematic.c	/^}fun2;$/;"	t	typeref:struct:__anonc6f179730108	file:
+fit_sin4	mathematic.c	/^int fit_sin4(double *func,double *x,double *y,int size){$/;"	f	typeref:typename:int	signature:(double * func,double * x,double * y,int size)
+fit_sin4	mathematic.h	/^int fit_sin4(double *func,double *x,double *y,int size);$/;"	p	typeref:typename:int	signature:(double * func,double * x,double * y,int size)
 gnuplot_create_t	plot.c	/^FILE* gnuplot_create_t(){$/;"	f	typeref:typename:FILE *	signature:()
 gnuplot_create_t	plot.h	/^FILE* gnuplot_create_t(void);$/;"	p	typeref:typename:FILE *	signature:(void)
 long_options	main.c	/^static struct option long_options[]={$/;"	v	typeref:struct:option[]	file:
+long_options	test.c	/^static struct option long_options[]={$/;"	v	typeref:struct:option[]	file:
+main	cosinor.c	/^int main(){$/;"	f	typeref:typename:int	signature:()
 main	main.c	/^int main(int argc,char** argv){$/;"	f	typeref:typename:int	signature:(int argc,char ** argv)
-mice_dfa	main.c	/^void mice_dfa(int order, double *data,int line){$/;"	f	typeref:typename:void	signature:(int order,double * data,int line)
-mice_mean_std	main.c	/^void mice_mean_std(double *data,int line){$/;"	f	typeref:typename:void	signature:(double * data,int line)
+main	test-new.c	/^int main(int argc,char** argv){$/;"	f	typeref:typename:int	signature:(int argc,char ** argv)
+main	test.c	/^int main(int argc,char** argv){$/;"	f	typeref:typename:int	signature:(int argc,char ** argv)
+mean_dev	usage.c	/^int mean_dev(char *filename, int breakpoint, int order){$/;"	f	typeref:typename:int	signature:(char * filename,int breakpoint,int order)
+mean_dev	usage.h	/^int mean_dev(char *filename, int breakpoint, int order);$/;"	p	typeref:typename:int	signature:(char * filename,int breakpoint,int order)
+mean_dev	utility.c	/^int mean_dev(char *filename, int breakpoint, int order){$/;"	f	typeref:typename:int	signature:(char * filename,int breakpoint,int order)
+mice_dfa	usage.c	/^void mice_dfa(int order, $/;"	f	typeref:typename:void	signature:(int order,double * data,double * fit,int head)
+mice_dfa	usage.h	/^void mice_dfa(int order, double *data,double *fit, int head);$/;"	p	typeref:typename:void	signature:(int order,double * data,double * fit,int head)
+mice_dfa	utility.c	/^int mice_dfa(char *name ,char *type, double *data, int size, int order, int duration, Gtype grap/;"	f	typeref:typename:int	signature:(char * name,char * type,double * data,int size,int order,int duration,Gtype graphtype,int outputf,char * outname)
+mice_dfa	utility.h	/^int mice_dfa(char *name, char *type, double *data, int size, int order, int duration, Gtype grap/;"	p	typeref:typename:int	signature:(char * name,char * type,double * data,int size,int order,int duration,Gtype graphtype,int outputf,char * outname)
+mice_dfas	usage.c	/^void mice_dfas(int order, $/;"	f	typeref:typename:void	signature:(int order,double * data,int line)
+mice_dfas	usage.h	/^void mice_dfas(int order, double *data,int line);$/;"	p	typeref:typename:void	signature:(int order,double * data,int line)
+mice_mean	usage.c	/^void mice_mean(double *func,$/;"	f	typeref:typename:void	signature:(double * func,double * data,int line)
+mice_mean	usage.h	/^void mice_mean(double *func,double *data,int line);$/;"	p	typeref:typename:void	signature:(double * func,double * data,int line)
+mice_mean	utility.c	/^int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtype graphtype, int/;"	f	typeref:typename:int	signature:(char * name,char * type,double * data,int size,int duration,Gtype graphtype,int outputf,char * outname)
+mice_mean	utility.h	/^int mice_mean(char *name, char *type, double *data, int size, int duration, Gtype graphtype, int/;"	p	typeref:typename:int	signature:(char * name,char * type,double * data,int size,int duration,Gtype graphtype,int outputf,char * outname)
+mice_name	utility.c	/^int mice_name(char *inname,char *path, char *name, char *type){$/;"	f	typeref:typename:int	signature:(char * inname,char * path,char * name,char * type)
+mice_name	utility.h	/^int mice_name(char *inname,char *path, char *name, char *type);$/;"	p	typeref:typename:int	signature:(char * inname,char * path,char * name,char * type)
+mice_std	usage.c	/^void mice_std(double *func,$/;"	f	typeref:typename:void	signature:(double * func,double * data,int line)
+mice_std	usage.h	/^void mice_std(double *func,double *data,int line);$/;"	p	typeref:typename:void	signature:(double * func,double * data,int line)
 plot_cmd	plot.c	/^void plot_cmd(FILE* gnuplotPipe, char* command){$/;"	f	typeref:typename:void	signature:(FILE * gnuplotPipe,char * command)
 plot_cmd	plot.h	/^void plot_cmd(FILE* gnuplotPipe, char* command);$/;"	p	typeref:typename:void	signature:(FILE * gnuplotPipe,char * command)
-plot_dfa	plot.c	/^bool plot_dfa(char *filename,int order,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,int order,int width,int height)
-plot_dfa	plot.h	/^bool plot_dfa(int order,int width,int height);$/;"	p	typeref:typename:bool	signature:(int order,int width,int height)
-plot_dfas	plot.c	/^bool plot_dfas(char *filename,double *fit,int order,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,double * fit,int order,int width,int height)
-plot_dfas	plot.h	/^bool plot_dfas(int order,int width,int height);$/;"	p	typeref:typename:bool	signature:(int order,int width,int height)
-plot_std	plot.c	/^bool plot_std(char *filename ,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,int width,int height)
-plot_std	plot.h	/^bool plot_std(int width,int height);$/;"	p	typeref:typename:bool	signature:(int width,int height)
+plot_dfa	plot.c	/^bool plot_dfa(char *filename,double *fit,int order,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,double * fit,int order,int width,int height)
+plot_dfa	plot.h	/^bool plot_dfa(char *filename,double *fit,int order,int width,int height);$/;"	p	typeref:typename:bool	signature:(char * filename,double * fit,int order,int width,int height)
+plot_dfas	plot.c	/^bool plot_dfas(char *filename,int order,int width,int height){$/;"	f	typeref:typename:bool	signature:(char * filename,int order,int width,int height)
+plot_dfas	plot.h	/^bool plot_dfas(char *filename,int order,int width,int height);$/;"	p	typeref:typename:bool	signature:(char * filename,int order,int width,int height)
+plot_mean	plot.c	/^bool plot_mean(double *func,char *filename ,int width,int height){$/;"	f	typeref:typename:bool	signature:(double * func,char * filename,int width,int height)
+plot_mean	plot.h	/^bool plot_mean(double *func,char *filename,int width,int height);$/;"	p	typeref:typename:bool	signature:(double * func,char * filename,int width,int height)
+plot_std	plot.c	/^bool plot_std(double *func,char *filename ,int width,int height){$/;"	f	typeref:typename:bool	signature:(double * func,char * filename,int width,int height)
+plot_std	plot.h	/^bool plot_std(double *func,char *filename,int width,int height);$/;"	p	typeref:typename:bool	signature:(double * func,char * filename,int width,int height)
 polyfit	mathematic.c	/^polyfit(int size,           \/\/the total number of the data $/;"	f	typeref:typename:bool	signature:(int size,int degree,double * ddx,double * dy,double * store,double * coeff)
 polyfit	mathematic.h	/^polyfit(int size,       \/\/the total number of the data $/;"	p	typeref:typename:bool	signature:(int size,int degree,double * dx,double * dy,double * store,double * coeff)
-print_usage	main.c	/^void print_usage(){$/;"	f	typeref:typename:void	signature:()
+print_usage	main.c	/^void print_usage(void){$/;"	f	typeref:typename:void	signature:(void)
+print_usage	test.c	/^void print_usage(void){$/;"	f	typeref:typename:void	signature:(void)
 progressbar	bar.h	/^progressbar(char *head,         \/\/head title of this bar $/;"	f	typeref:typename:int	signature:(char * head,int percentage,int barlen)
 read_mice_file	file.c	/^double* read_mice_file(char* ifname, int *line){$/;"	f	typeref:typename:double *	signature:(char * ifname,int * line)
-read_mice_file	file.h	/^double* read_mice_file(char* ifname, int *line);$/;"	p	typeref:typename:double *	signature:(char * ifname,int * line)
-x	mathematic.c	/^    double x;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
-y	mathematic.c	/^    double y;$/;"	m	struct:__anonc6f179730108	typeref:typename:double	file:	access:public
+read_mice_file	file.h	/^double* read_mice_file(char *, int *);$/;"	p	typeref:typename:double *	signature:(char *,int *)
+read_single_colum_data	file.c	/^double* read_single_colum_data(char *ifname,int *lines){$/;"	f	typeref:typename:double *	signature:(char * ifname,int * lines)
+read_single_colum_data	file.h	/^double *read_single_colum_data(char *, int *);$/;"	p	typeref:typename:double *	signature:(char *,int *)
+setmem_double	file.c	/^int setmem_double(double *data,int size, double def){$/;"	f	typeref:typename:int	signature:(double * data,int size,double def)
+setmem_double	file.h	/^int setmem_double(double *data,int size, double def);$/;"	p	typeref:typename:int	signature:(double * data,int size,double def)
+stats_mean	mathematic.c	/^stats_mean(double *data,$/;"	f	typeref:typename:double	signature:(double * data,int size)
+stats_mean	mathematic.h	/^double stats_mean(double *data,int size); $/;"	p	typeref:typename:double	signature:(double * data,int size)
+stats_std	mathematic.c	/^stats_std(double *data,$/;"	f	typeref:typename:double	signature:(double * data,int size)
+stats_std	mathematic.h	/^double stats_std(double *data,int size);$/;"	p	typeref:typename:double	signature:(double * data,int size)
+stats_var	mathematic.c	/^stats_var(double* data, $/;"	f	typeref:typename:double	signature:(double * data,int size)
+stats_var	mathematic.h	/^double stats_var(double* data, int size);$/;"	p	typeref:typename:double	signature:(double * data,int size)

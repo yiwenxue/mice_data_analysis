@@ -9,6 +9,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+typedef enum{
+    GAVERAGE,
+    GINDIVIDUAL,
+    GDEVIATION
+}Gtype;
+
 FILE* gnuplot_create_t(void);
 
 void plot_cmd(FILE* gnuplotPipe, char* command);

@@ -32,8 +32,8 @@ bool plot_mean(double *func,char *filename ,int width,int height){
     plot_cmd(plo,"set ylabel \'mean\'");
     plot_cmd(plo,"set grid");
     plot_cmd(plo,"set title \'Mean\'");
-    sprintf(cmd,"plot \'%s\' using 1:2 with  points pointsize 1 pointtype 5 title \'Mean\',%lf+%lf*sin(x/15*2*pi)+%lf*cos(x/15*2*pi)+%lf*sin(2*x/15*2*pi)+%lf*cos(2*x/15*2*pi) title \'Fit\'",
-            filename,func[0],func[1],func[2],func[3],func[4]);
+    sprintf(cmd,"plot \'%s\' using 1:2 with  points pointsize 1 pointtype 5 title \'Mean\'",filename);//,%lf+%lf*sin(x/15*2*pi)+%lf*cos(x/15*2*pi)+%lf*sin(2*x/15*2*pi)+%lf*cos(2*x/15*2*pi) title \'Fit\'",
+            //filename,func[0],func[1],func[2],func[3],func[4]);
     plot_cmd(plo,cmd);
 
     fclose(plo);

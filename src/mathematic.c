@@ -279,8 +279,8 @@ cosinor(double *x,
     }
     double phi=0.0,amp = 0.0;
     for(int j=1;j<degree;j+=2){
-        amp = sqrt( (store[j]*store[j]) + (store[j+1]*store[j+1]) );
         phi = atan(  -1 * store[j+1] / store[j] );
+        amp = store[j] / cos(phi);
         store[j] = amp;
         store[j+1] = phi;
     }
