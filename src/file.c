@@ -47,6 +47,7 @@ double* read_mice_file(char* ifname, int *line){
         return NULL;
     }
 
+    int num = 0;
     double *in_data;
     in_data = (double*)malloc(*line * sizeof(double));
     double tempx = 0, tempy = 0, tempxx = 0;
@@ -58,7 +59,10 @@ double* read_mice_file(char* ifname, int *line){
             }
             if(!isnan(tempy))
                 in_data[i] = tempy;
-            else in_data[i] = in_data[i-1];
+            else {
+                in_data[i] = in_data[i-1];
+                num ++;
+            }
             tempxx = tempx;
         }
         else {
@@ -67,6 +71,7 @@ double* read_mice_file(char* ifname, int *line){
             return NULL;
         }
     }
+    printf("Total points: %d\nNum of Nans: %d ~ %lf% \n",*line,num,100.0*(double)num/(double)(*line));
 
     fclose(temp);
     return in_data;
