@@ -121,6 +121,7 @@ int mice_dfa(char *name ,char *type, double *data, int size, int order, int dura
         }
         std[i] = sqrt(std[i]/raw);
         devy[i] /= meany[i] /100.0;
+        /* std[i] = std[i] / meany[i] * 100.0; */
     }
     //finished !!! 
 
@@ -153,7 +154,7 @@ int mice_dfa(char *name ,char *type, double *data, int size, int order, int dura
     /* plot_cmd(plo,"set ylabel \"α\""); */
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
-    sprintf(cmd,"set title \"DFA%d of %s - group average(%s)\"",order,type,name);
+    sprintf(cmd,"set title \"DFA%d of %s - day average(%s)\"",order,type,name);
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
     sprintf(cmd,"plot \'/tmp/mice\' u 1:2 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit\"",
@@ -187,14 +188,16 @@ int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtyp
         }
     }
 
-    double *meany,*devy,*std;
+    double *meany,*devy,*std,*devstd;
     meany = (double*)malloc(sizeof(double)*colum);
     devy = (double*)malloc(sizeof(double)*colum);
     std = (double*)malloc(sizeof(double)*colum);
+    devstd = (double*)malloc(sizeof(double)*colum);
     for(int i=0;i<colum;i++){
         meany[i] = 0.0;
         devy[i] = 0.0;
         std[i] = 0.0;
+        devstd[i] = 0.0;
     }
 
     //calculation of mean value;
@@ -219,6 +222,7 @@ int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtyp
         }
         std[i] = sqrt(std[i]/raw);
         devy[i] /= meany[i] /100.0;
+        devstd[i] = std[i] / meany[i] * 100.0;
     }
     //finished !!! 
 
@@ -230,15 +234,13 @@ int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtyp
 
     if( graphtype == GAVERAGE ){
         cosinor(xx,meany,colum,func,5);
-        /* fit_sin4(func,xx,devy,colum); */
         for(int i=0;i<colum;i++){
             fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],meany[i],std[i]);
         }
     }else if(graphtype == GDEVIATION){
         cosinor(xx,devy,colum,func,5);
-        /* fit_sin4(func,xx,devy,colum); */
         for(int i=0;i<colum;i++){
-            fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],std[i]);
+            fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],devstd[i]);
         }
     }else 
         return -1;
@@ -260,10 +262,10 @@ int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtyp
     plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
     if(graphtype == GAVERAGE ){
-        sprintf(cmd,"set title \" Mean %s - group average(%s)\"",type,name);
+        sprintf(cmd,"set title \" Mean %s - day average(%s)\"",type,name);
         plot_cmd(plo,"set ylabel \"Average\"");
     }else {
-        sprintf(cmd,"set title \" Mean of %s - group average(%s)\"",type,name);
+        sprintf(cmd,"set title \" Mean of %s - day average(%s)\"",type,name);
         plot_cmd(plo,"set ylabel \"\%Deviation\"");
     }
     plot_cmd(plo,cmd);
@@ -280,6 +282,7 @@ int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtyp
 
     free(yy);free(xx);free(devy);free(meany);
     free(std);
+    free(devstd);
     return 0;
 }
 
@@ -338,6 +341,7 @@ int mice_std(char *name ,char *type, double *data, int size, int duration, Gtype
         }
         std[i] = sqrt(std[i]/raw);
         devy[i] /= meany[i] /100.0;
+        std[i] = std[i] / meany[i] * 100.0;
     }
     //finished !!! 
 
@@ -379,10 +383,10 @@ int mice_std(char *name ,char *type, double *data, int size, int duration, Gtype
     plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
     if(graphtype == GAVERAGE ){
-        sprintf(cmd,"set title \" STD %s - group average(%s)\"",type,name);
+        sprintf(cmd,"set title \" STD %s - day average(%s)\"",type,name);
         plot_cmd(plo,"set ylabel \"Average\"");
     }else {
-        sprintf(cmd,"set title \" STD of %s - group average(%s)\"",type,name);
+        sprintf(cmd,"set title \" STD of %s - day average(%s)\"",type,name);
         plot_cmd(plo,"set ylabel \"\%Deviation\"");
     }
     plot_cmd(plo,cmd);
