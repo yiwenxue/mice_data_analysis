@@ -7,7 +7,11 @@
 
 #include "utility.h"
 
-int mice_name(char *inname,char *path, char *name, char *type){
+int mice_name(char *inname,
+              char *path, 
+              char *name, 
+              char *type)
+{
     char *tag;
     char *backup;
     backup = inname;
@@ -56,7 +60,16 @@ int dfa_fnsize(int num){
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice_dfa(char *name ,char *type, double *data, int size, int order, int duration, Gtype graphtype, int outputf, char *outname){
+int mice_dfa(char *name ,
+             char *type, 
+             double *data, 
+             int size, 
+             int order, 
+             int duration, 
+             Gtype graphtype, 
+             int outputf, 
+             char *outname)
+{
 
     int ssize = dfa_fnsize(duration);
 
@@ -170,7 +183,15 @@ int mice_dfa(char *name ,char *type, double *data, int size, int order, int dura
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtype graphtype, int outputf, char *outname){
+int mice_mean(char *name ,
+        char *type, 
+        double *data, 
+        int size, 
+        int duration, 
+        Gtype graphtype, 
+        int outputf, 
+        char *outname)
+{
 
     //num of colume is sagments, num of raws is different days;
     int colum = 48*360 / duration;
@@ -291,7 +312,15 @@ int mice_mean(char *name ,char *type, double *data, int size, int duration, Gtyp
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice_std(char *name ,char *type, double *data, int size, int duration, Gtype graphtype, int outputf, char *outname){
+int mice_std(char *name ,
+             char *type, 
+             double *data, 
+             int size, 
+             int duration, 
+             Gtype graphtype, 
+             int outputf, 
+             char *outname)
+{
 
     //num of colume is sagments, num of raws is different days;
     int colum = 48*360 / duration;
