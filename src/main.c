@@ -169,7 +169,6 @@ int main(int argc,char** argv){
            filetype = MICE_DATA;
            data = read_mice_file(ifname,&lines);
        }
-       printf("lines: %d\n",lines);
    }else{
        fprintf(stderr,"An input data file is needed.\n");
        return 0;
