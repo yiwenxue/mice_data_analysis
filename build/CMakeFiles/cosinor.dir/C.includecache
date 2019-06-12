@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/arthas/program/mice_physiology/src/cosinor.c
+stdio.h
+-
+malloc.h
+-
+math.h
+-
+gsl/gsl_multifit.h
+-
+gsl/gsl_sf.h
+-
+gsl/gsl_statistics_double.h
+-
+mathematic.h
+/home/arthas/program/mice_physiology/src/mathematic.h
+
+/home/arthas/program/mice_physiology/src/mathematic.h
+math.h
+-
+gsl/gsl_multifit.h
+-
+gsl/gsl_statistics_double.h
+-
+gsl/gsl_sf.h
+-
+stdbool.h
+-
+

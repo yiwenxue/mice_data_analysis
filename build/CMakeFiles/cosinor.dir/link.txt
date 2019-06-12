@@ -1,0 +1,1 @@
+/usr/bin/gcc   -rdynamic CMakeFiles/cosinor.dir/src/cosinor.c.o  -o cosinor libmylib.a -lm -lgsl -lgslcblas 
