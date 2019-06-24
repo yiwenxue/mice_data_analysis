@@ -24,7 +24,7 @@ polyfit(int size,           //the total number of the data
         int degree,         //degree of the polynomial fit 
         double *ddx,         //data of x 
         double *dy,         //data of y 
-        double *store,      //array to store the coefficiencies 
+        double *store,      //array to store the coefficiencies "order increases with position";
         double *coeff       //double to store the err of this fit R square
         )
 {
@@ -168,7 +168,7 @@ detrend_flucuation(int order,                      //order of DFA
     free(tempy);
     free(log10fn);
     free(log10n);
-    return fit[1];
+    return coeff;
 }
 
 double 
@@ -232,13 +232,15 @@ stats_mean(double *data,
     return sum;
 }
 
-int 
+double  
 cosinor(double *x,
             double *y,
             int size,
             double *store,
             int degree /*(2*N+1)*/)
 {
+    double tss = gsl_stats_tss(y,1,size);
+
     gsl_matrix *X, *cov;
     gsl_vector *Y, *c;
 
@@ -284,6 +286,9 @@ cosinor(double *x,
         store[j] = amp;
         store[j+1] = phi;
     }
+    
+    double rsq = 1.0 - chisq /tss;
+    fprintf(stdout,"Cosinor fit -- R^2=%.3f\n",rsq);
 
     gsl_multifit_linear_free (ws);
 
@@ -292,6 +297,6 @@ cosinor(double *x,
     gsl_vector_free (c);
     gsl_matrix_free (cov);
 
-    return 1; 
+    return rsq; 
 }
 
