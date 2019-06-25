@@ -60,7 +60,7 @@ int dfa_fnsize(int num){
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice_dfa(char *name ,
+int mice38_dfa(char *name ,
              char *type, 
              double *data, 
              int size, 
@@ -78,12 +78,14 @@ int mice_dfa(char *name ,
     int  raw = 18;
 
     /* printf("colum: %d\nraw: %d\n",colum,raw); */
-    double *xx,*yy;
+    double *xx,*yy,*err;
     xx = (double*)malloc(sizeof(double)*colum*raw);
     yy = (double*)malloc(sizeof(double)*colum*raw);
+    err = (double*)malloc(sizeof(double)*colum*raw);
 
     //Prepare for dfa 
     double *fn,*n; double fit[2];
+
     fn = (double*)malloc(sizeof(double)*ssize);
     n = (double*)malloc(sizeof(double)*ssize);
     for(int i=0;i<ssize;i++){
@@ -91,11 +93,14 @@ int mice_dfa(char *name ,
         n[i] = 0.0;
     }
 
+
+    double mean =0.0; int cont =0;
     if( graphtype == GAVERAGE ){
         for(int j=0;j<raw;j++){
             for(int i=0;i<colum;i++){
                 xx[j*colum+i] = (i+0.5)*((double)duration/360.0); // hours
-                yy[j*colum+i] = detrend_flucuation(order,data+(j*17280/*2 days*/+i*duration),duration,fn,n,&ssize,fit); //mean value for every 3 hours 
+                err[j*colum+i] = detrend_flucuation(order,data+(j*17280/*2 days*/+i*duration),duration,fn,n,&ssize,fit); //mean value for every 3 hours 
+                yy[j*colum+i] = fit[1];
             }
         }
     }else if(graphtype == GINDIVIDUAL){
@@ -142,12 +147,12 @@ int mice_dfa(char *name ,
     FILE *output; 
     output = fopen("/tmp/mice","w");
     for(int i=0;i<colum;i++){
-        fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],std[i]);
+        fprintf(output,"%.2f\t%.3f\t%.3f\t%.3f\n",xx[i],meany[i],devy[i],std[i]);
     }
     fclose(output);
 
     double func[5];
-    cosinor(xx,devy,colum,func,5);
+    double rsq = cosinor(xx,meany,colum,func,5);
 
     //
     // The progress to plot a graph;
@@ -162,20 +167,20 @@ int mice_dfa(char *name ,
     char cmd[255];
     plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
-    plot_cmd(plo,"set ylabel \"\%Deviation from mean α\"");
+    /* plot_cmd(plo,"set ylabel \"\%Deviation from mean α\""); */
     /* plot_cmd(plo,"set ylabel \"\%Deviation\""); */
-    /* plot_cmd(plo,"set ylabel \"α\""); */
+    plot_cmd(plo,"set ylabel \"α\"");
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
     sprintf(cmd,"set title \"DFA%d of %s - day average(%s)\"",order,type,name);
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
-    sprintf(cmd,"plot \'/tmp/mice\' u 1:2 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit\"",
-            func[0],func[1],t,func[2],func[3],2*t,func[4]);
+    sprintf(cmd,"plot \'/tmp/mice\' u 1:2 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     plot_cmd(plo,cmd);
 
     free(yy);free(xx);free(devy);free(meany);free(fn);free(n);
-    free(std);
+    free(std);free(err);
     return 0;
 }
 /*
@@ -183,7 +188,7 @@ int mice_dfa(char *name ,
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice_mean(char *name ,
+int mice38_mean(char *name ,
         char *type, 
         double *data, 
         int size, 
@@ -252,14 +257,15 @@ int mice_mean(char *name ,
     //Wants to print the results into a file;
     FILE *output; 
     output = fopen("/tmp/mice","w");
+    double rsq = 0.0;
 
     if( graphtype == GAVERAGE ){
-        cosinor(xx,meany,colum,func,5);
+        rsq = cosinor(xx,meany,colum,func,5);
         for(int i=0;i<colum;i++){
             fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],meany[i],std[i]);
         }
     }else if(graphtype == GDEVIATION){
-        cosinor(xx,devy,colum,func,5);
+        rsq = cosinor(xx,devy,colum,func,5);
         for(int i=0;i<colum;i++){
             fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],devstd[i]);
         }
@@ -294,8 +300,8 @@ int mice_mean(char *name ,
     plot_cmd(plo,"set xtics 3");
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
-    sprintf(cmd,"plot \'/tmp/mice\' u 1:2:3 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit\"",
-            func[0],func[1],t,func[2],func[3],2*t,func[4]);
+    sprintf(cmd,"plot \'/tmp/mice\' u 1:2:3 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     /* printf(" y = %.3f + %.3f * cos(%.3f * x + %.3f )+%.3f * cos(%.3f * x+ %.3f )\n", */
     /*         func[0],func[1],t,func[2],func[3],2*t,func[4]); */
 
@@ -312,7 +318,7 @@ int mice_mean(char *name ,
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice_std(char *name ,
+int mice38_std(char *name ,
              char *type, 
              double *data, 
              int size, 
@@ -380,14 +386,15 @@ int mice_std(char *name ,
     FILE *output; 
     output = fopen("/tmp/mice","w");
 
+    double rsq =  0.0;
     if( graphtype == GAVERAGE ){
-        cosinor(xx,meany,colum,func,5);
+        rsq = cosinor(xx,meany,colum,func,5);
         /* fit_sin4(func,xx,devy,colum); */
         for(int i=0;i<colum;i++){
             fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],meany[i],std[i]);
         }
     }else if(graphtype == GDEVIATION){
-        cosinor(xx,devy,colum,func,5);
+        rsq = cosinor(xx,devy,colum,func,5);
         /* fit_sin4(func,xx,devy,colum); */
         for(int i=0;i<colum;i++){
             fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],std[i]);
@@ -423,8 +430,8 @@ int mice_std(char *name ,
     plot_cmd(plo,"set xtics 3");
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
-    sprintf(cmd,"plot \'/tmp/mice\' u 1:2:3 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit\"",
-            func[0],func[1],t,func[2],func[3],2*t,func[4]);
+    sprintf(cmd,"plot \'/tmp/mice\' u 1:2:3 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     /* printf(" y = %.3f + %.3f * cos(%.3f * x + %.3f )+%.3f * cos(%.3f * x+ %.3f )\n", */
     /*         func[0],func[1],t,func[2],func[3],2*t,func[4]); */
 
@@ -524,4 +531,267 @@ int check_circadian(char *filename,int breakpoint){
         plot_cmd(plo,cmd);
     }
     return 0;
+}
+
+int mice_dfa(char *name,    //file name of data
+        char *path,         //full path to data
+        char *type,         //activity or temperature
+        double *data,       //array of data stream read
+        int size,           //size of the array 
+        int order,          //order of dfa
+        int duration       //size of every single segment
+)
+{
+
+    FILE *output;
+    output = fopen("/tmp/mice", "w");
+    double fit[2];
+    double *fn, *n;
+    int logsize = dfa_fnsize(duration);
+    fn = (double*)malloc(sizeof(double)*logsize);
+    n = (double*)malloc(sizeof(double)*logsize);
+    for(int i=0;i<logsize;i++){
+        fn[i] = 0.0; n[i] = 0.0;
+    }
+    double hurst = 0.0, mean = 0.0;
+    size -= duration;
+    double *x, *h, *err;
+    x = (double*)malloc(sizeof(double)*size/duration);
+    h = (double*)malloc(sizeof(double)*size/duration);
+    err = (double*)malloc(sizeof(double)*size/duration);
+    for(int i=0;i<size;i+=duration){
+        err[i/duration] = detrend_flucuation(order,data+i,duration,fn,n,&logsize,fit);
+        h[i/duration] = fit[1];
+        /* printf("fit[0] = %f\tfit[1] = %f\terr = %f\n",fit[0],fit[1],err[i/duration]); */
+        x[i/duration] = (i/1080.0)*3.0+1.5;
+        fprintf(output,"%f\t%f\t%f\n",x[i/duration],h[i/duration],err[i/duration]);
+    }
+    fclose(output);
+
+    double func[5] = {
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0};
+
+    double t = M_PI/12.0;
+    double rsq = cosinor(x,h,size/duration,func,5);
+    FILE *plo; 
+    plo = gnuplot_create_t();
+    if(plo == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    char cmd[255];
+    plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+    sprintf(cmd,"set out \"%s%s.%s_dfa%d.pdf\"",path,name,type,order);
+    fprintf(stdout,"%s\n",cmd);
+    plot_cmd(plo,cmd);
+    sprintf(cmd,"set title \"%s %s DFA%d \"",name,type,order);
+    plot_cmd(plo,cmd);
+    plot_cmd(plo,"set grid");
+    plot_cmd(plo,"set xlabel \"time(h)\"");
+    plot_cmd(plo,"set xtics 3");
+    plot_cmd(plo,"set ylabel \"α\"");
+    plot_cmd(plo,"set xrange [0:48]");
+
+    sprintf(cmd,"plot \"/tmp/mice\" u 1:2 with points title \"Data\", %f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set out");
+    free(fn);free(n);
+    free(x);free(h);free(err);
+    return 1;
+}
+
+int mice_dfap(char *name,    //file name of data
+        char *path,         //full path to data
+        char *type,         //activity or temperature
+        double *data,       //array of data stream read
+        int size,           //size of the array 
+        int pointss,          //a start point to check
+        int order,          //order of dfa
+        int duration       //size of every single segment
+)
+{
+
+    FILE *output;
+    output = fopen("/tmp/mice", "w");
+    double fit[2];
+    double *fn, *n;
+    int logsize = dfa_fnsize(duration);
+    fn = (double*)malloc(sizeof(double)*logsize);
+    n = (double*)malloc(sizeof(double)*logsize);
+    for(int i=0;i<logsize;i++){
+        fn[i] = 0.0; n[i] = 0.0;
+    }
+
+    double hurst, mean;
+    size -= duration;
+
+    hurst = detrend_flucuation(order,data+pointss,duration,fn,n,&logsize,fit);
+    for(int i=0;i<logsize;i++){
+        fprintf(output,"%f\t%f\n",(n[i]),(fn[i]));
+    }
+    fclose(output);
+
+    FILE *plo; 
+    plo = gnuplot_create_t();
+    if(plo == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    char cmd[255];
+    plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+    sprintf(cmd,"set out \"%s%s.%s_dfa%d_%d.pdf\"",path,name,type,order,pointss);
+    fprintf(stdout,"%s\n",cmd);
+    plot_cmd(plo,cmd);
+    sprintf(cmd,"set title \"%s %s DFA%d \"",name,type,order);
+    plot_cmd(plo,cmd);
+    plot_cmd(plo,"set encoding utf8");
+    plot_cmd(plo,"set grid");
+    plot_cmd(plo,"set logscale x 10");
+    plot_cmd(plo,"set logscale y 10");
+    plot_cmd(plo,"set xlabel \"n\"");
+    plot_cmd(plo,"set ylabel \"fn\"");
+
+    sprintf(cmd,"set label \"α = %.3f\" right at graph 0.3,graph 0.6",hurst);
+    plot_cmd(plo,cmd);
+    plot_cmd(plo,"show label");
+    
+    sprintf(cmd,"plot \"/tmp/mice\" with points notitle, %f*(x**%f) notitle",pow(10,fit[0]),fit[1]);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set out");
+    free(fn);free(n);
+    fclose(plo);
+    return 1;
+}
+
+int mice_mean(char *name,    //file name of data
+        char *path,         //full path to data
+        char *type,         //activity or temperature
+        double *data,       //array of data stream read
+        int size,           //size of the array 
+        int duration       //size of every single segment
+)
+{
+
+    FILE *output;
+    output = fopen("/tmp/mice", "w");
+
+    double mean = 0.0;
+    size -= duration;
+
+    double *x, *h;
+    x = (double*)malloc(sizeof(double)*size/duration);
+    h = (double*)malloc(sizeof(double)*size/duration);
+    for(int i=0;i<size;i+=duration){
+        h[i/duration] = gsl_stats_mean(data+i,1,duration);
+        x[i/duration] = (i/1080.0)*3.0+1.5;
+        fprintf(output,"%f\t%f\n",x[i/duration],h[i/duration]);
+    }
+    fclose(output);
+
+    double func[5] = {0.0,0.0,0.0,0.0,0.0};
+    double t = M_PI/12.0;
+    double rsq = cosinor(x,h,size/duration,func,5);
+    FILE *plo; 
+    plo = gnuplot_create_t();
+    if(plo == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    char cmd[255];
+    plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+
+    sprintf(cmd,"set out \"%s%s.%s_Mean.pdf\"",path,name,type);
+    fprintf(stdout,"%s\n",cmd);
+    plot_cmd(plo,cmd);
+
+    sprintf(cmd,"set title \"%s %s Mean\"",name,type);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set grid");
+    plot_cmd(plo,"set xlabel \"time(h)\"");
+
+    sprintf(cmd,"set ylabel \"Mean %s\"",type);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set xtics 3");
+    plot_cmd(plo,"set xrange [0:48]");
+
+    sprintf(cmd,"plot \"/tmp/mice\" with points title \"Data\", %f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set out");
+    fclose(plo);
+    free(x);free(h);
+    return 1;
+}
+int mice_std(char *name,    //file name of data
+        char *path,         //full path to data
+        char *type,         //activity or temperature
+        double *data,       //array of data stream read
+        int size,           //size of the array 
+        int duration       //size of every single segment
+)
+{
+
+    FILE *output;
+    output = fopen("/tmp/mice", "w");
+
+    double std = 0.0;
+    size -= duration;
+
+    double *x, *h;
+    x = (double*)malloc(sizeof(double)*size/duration);
+    h = (double*)malloc(sizeof(double)*size/duration);
+    for(int i=0;i<size;i+=duration){
+        h[i/duration] = gsl_stats_sd(data+i,1,duration);
+        x[i/duration] = (i/1080.0)*3.0+1.5;
+        fprintf(output,"%f\t%f\n",x[i/duration],h[i/duration]);
+    }
+    fclose(output);
+
+    double func[5] = {0.0,0.0,0.0,0.0,0.0};
+    double t = M_PI/12.0;
+    double rsq = cosinor(x,h,size/duration,func,5);
+
+    FILE *plo; 
+    plo = gnuplot_create_t();
+    if(plo == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    char cmd[255];
+    plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+
+    sprintf(cmd,"set out \"%s%s.%s_STD.pdf\"",path,name,type);
+    fprintf(stdout,"%s\n",cmd);
+    plot_cmd(plo,cmd);
+
+    sprintf(cmd,"set title \"%s %s STD\"",name,type);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set grid");
+    plot_cmd(plo,"set xlabel \"time(h)\"");
+    plot_cmd(plo,"set xtics 3");
+
+    sprintf(cmd,"set ylabel \"STD %s\"",type);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set xrange [0:48]");
+
+    sprintf(cmd,"plot \"/tmp/mice\" with points title \"Data\", %f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    plot_cmd(plo,cmd);
+
+    plot_cmd(plo,"set out");
+    fclose(plo);
+    free(x);free(h);
+    return 1;
 }
