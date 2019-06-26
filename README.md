@@ -9,8 +9,7 @@
     [x] COSINOR PRECESSION
 
 # Not finished
-
-
+    [ ] add some linux filesystem support into file.c 
 
 # Usage 
     $ ./test [path] -- will do analysis on every temp or act file(with two days data)
