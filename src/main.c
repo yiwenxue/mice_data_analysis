@@ -33,7 +33,7 @@ static struct option long_options[]={
 };
 char *desc[]={
     "Name of the file to be analysised, followed by a file name",
-    "The type of graph. [ MICE_DATA | SINGLE_COLUM ]",
+    "The type of graph. [ MICE_DATA | MICE_DATA_38 | SINGLE_COLUM ]",
     "Exec dfa, followed by dfa order.",
     "Exec mean analysis",
     "Exec standard analysis",
@@ -155,15 +155,19 @@ int main(int argc,char** argv){
    //readin data with check process
    if(ifflag){
        if(iftypef){
-           if(!strcmp(iftype,"MICE_DATA")){
-               filetype = MICE_DATA;
+           if(!strcmp(iftype,"MICE_DATA_38")){
+               filetype = MICE_DATA_38;
                data = read_mice_file(ifname,&lines);
            }else if(!strcmp(iftype,"SINGLE_COLUM")){
                filetype = SINGLE_COLUM;
                data = read_single_colum_data(ifname,&lines);
+           }else if(!strcmp(iftype,"MICE_DATA")){
+               filetype = MICE_DATA;
+               data = read_mice_file(ifname,&lines);
+               //
            }else{
-               fprintf(stderr,"File types: MICE_DATA | SINGLE_COLUM\n");
-               return 0;
+               fprintf(stderr,"File types: MICE_DATA | MICE_DATA_38 | SINGLE_COLUM\n");
+               return -1;
            }
        }else{
            filetype = MICE_DATA;
@@ -171,11 +175,11 @@ int main(int argc,char** argv){
        }
    }else{
        fprintf(stderr,"An input data file is needed.\n");
-       return 0;
+       return -1;
    }
 
-   if(filetype == MICE_DATA){
-       //CHEKC THE MICE_DATA FILE THYE
+   if(filetype == MICE_DATA || filetype == MICE_DATA_38){
+       //CHEKC THE MICE_DATA* FILE THYE
        mice_name(ifname,path,name,type);
        /* printf("name: %s\ntype: %s\npath: %s\n",name,type,path); */
    }
@@ -190,24 +194,39 @@ int main(int argc,char** argv){
            graphtype = GDEVIATION;
        }else{
            fprintf(stderr,"Graph type: GAVERAGE | GINDIVIDUAL | GDEVIATION\n");
-           return 0;
+           return -1;
        }
    }else
-       graphtype = GAVERAGE ;
+       graphtype = GAVERAGE;
 
    if(duration % 360 != 0){
        fprintf(stderr,"Duration is not complete hours. You'd better set it to be N*360 (N is an integer)\n");
-       return 0;
+       return -1;
    }
 
    if(dfaf){
-        mice_dfa(name,type,data,lines,order,duration,graphtype,outputf,outname);
+       if(filetype == MICE_DATA_38)
+           mice38_dfa(name,type,data,lines,order,duration,graphtype,outputf,outname);
+       if(filetype == MICE_DATA)
+           mice_dfap(name,path,type,data,lines,15120,order,duration);
+           /* mice_dfa(name,path,type,data,lines,order,duration); */
    }else if(meanf){
-        mice_mean(name,type,data,lines,duration,graphtype,outputf,outname);
+       if(filetype == MICE_DATA_38)
+           mice38_mean(name,type,data,lines,duration,graphtype,outputf,outname);
+       if(filetype == MICE_DATA)
+           mice_mean(name,path,type,data,lines,duration);
    }else if(stdf){
-        mice_std(name,type,data,lines,duration,graphtype,outputf,outname);
+       if(filetype == MICE_DATA_38)
+           mice38_std(name,type,data,lines,duration,graphtype,outputf,outname);
+       if(filetype == MICE_DATA)
+           mice_std(name,path,type,data,lines,duration);
    }else if(checkf){
-       ;
+       if(filetype == MICE_DATA_38)
+           ;
+       else {
+           fprintf(stderr,"Filetype error. MICE_DATA_38 nedded.\nExit...\n");
+           return -1;
+       }
    }
    free(data);
 

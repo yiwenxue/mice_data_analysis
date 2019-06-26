@@ -585,7 +585,7 @@ int mice_dfa(char *name,    //file name of data
     }
     char cmd[255];
     plot_cmd(plo,"set terminal pdf size 6.0,4.0");
-    sprintf(cmd,"set out \"%s%s.%s_dfa%d.pdf\"",path,name,type,order);
+    sprintf(cmd,"set out \"%s%s_%s_dfa%d.pdf\"",path,name,type,order);
     fprintf(stdout,"%s\n",cmd);
     plot_cmd(plo,cmd);
     sprintf(cmd,"set title \"%s %s DFA%d \"",name,type,order);
@@ -596,7 +596,7 @@ int mice_dfa(char *name,    //file name of data
     plot_cmd(plo,"set ylabel \"α\"");
     plot_cmd(plo,"set xrange [0:48]");
 
-    sprintf(cmd,"plot \"/tmp/mice\" u 1:2 with points title \"Data\", %f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+    sprintf(cmd,"plot \"/tmp/mice\" u 1:2:(1-$3) with yerr pt 4 title \"Data\", %f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
             func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     plot_cmd(plo,cmd);
 
@@ -628,10 +628,10 @@ int mice_dfap(char *name,    //file name of data
         fn[i] = 0.0; n[i] = 0.0;
     }
 
-    double hurst, mean;
+    double err, mean;
     size -= duration;
 
-    hurst = detrend_flucuation(order,data+pointss,duration,fn,n,&logsize,fit);
+    err = detrend_flucuation(order,data+pointss,duration,fn,n,&logsize,fit);
     for(int i=0;i<logsize;i++){
         fprintf(output,"%f\t%f\n",(n[i]),(fn[i]));
     }
@@ -645,10 +645,10 @@ int mice_dfap(char *name,    //file name of data
     }
     char cmd[255];
     plot_cmd(plo,"set terminal pdf size 6.0,4.0");
-    sprintf(cmd,"set out \"%s%s.%s_dfa%d_%d.pdf\"",path,name,type,order,pointss);
+    sprintf(cmd,"set out \"%s%s_%s_dfa%d_%d.pdf\"",path,name,type,order,pointss);
     fprintf(stdout,"%s\n",cmd);
     plot_cmd(plo,cmd);
-    sprintf(cmd,"set title \"%s %s DFA%d \"",name,type,order);
+    sprintf(cmd,"set title \"%s %s DFA%d At %.1fh\"",name,type,order,pointss/360+1.5);
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set encoding utf8");
     plot_cmd(plo,"set grid");
@@ -657,11 +657,11 @@ int mice_dfap(char *name,    //file name of data
     plot_cmd(plo,"set xlabel \"n\"");
     plot_cmd(plo,"set ylabel \"fn\"");
 
-    sprintf(cmd,"set label \"α = %.3f\" right at graph 0.3,graph 0.6",hurst);
+    sprintf(cmd,"set label \"α = %.3f\" right at graph 0.3,graph 0.6",fit[1]);
     plot_cmd(plo,cmd);
     plot_cmd(plo,"show label");
     
-    sprintf(cmd,"plot \"/tmp/mice\" with points notitle, %f*(x**%f) notitle",pow(10,fit[0]),fit[1]);
+    sprintf(cmd,"plot \"/tmp/mice\" with points notitle, %f*(x**%f) title \"fit(R^2=%.2f)\"",pow(10,fit[0]),fit[1],err);
     plot_cmd(plo,cmd);
 
     plot_cmd(plo,"set out");
@@ -707,7 +707,7 @@ int mice_mean(char *name,    //file name of data
     char cmd[255];
     plot_cmd(plo,"set terminal pdf size 6.0,4.0");
 
-    sprintf(cmd,"set out \"%s%s.%s_Mean.pdf\"",path,name,type);
+    sprintf(cmd,"set out \"%s%s_%s_Mean.pdf\"",path,name,type);
     fprintf(stdout,"%s\n",cmd);
     plot_cmd(plo,cmd);
 
@@ -770,7 +770,7 @@ int mice_std(char *name,    //file name of data
     char cmd[255];
     plot_cmd(plo,"set terminal pdf size 6.0,4.0");
 
-    sprintf(cmd,"set out \"%s%s.%s_STD.pdf\"",path,name,type);
+    sprintf(cmd,"set out \"%s%s_%s_STD.pdf\"",path,name,type);
     fprintf(stdout,"%s\n",cmd);
     plot_cmd(plo,cmd);
 
