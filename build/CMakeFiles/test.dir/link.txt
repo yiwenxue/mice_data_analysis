@@ -1,1 +1,0 @@
-/usr/bin/gcc   -rdynamic CMakeFiles/test.dir/src/test.c.o  -o test libmylib.a -lm -lgsl -lgslcblas 

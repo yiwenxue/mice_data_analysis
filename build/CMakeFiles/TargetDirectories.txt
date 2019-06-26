@@ -1,6 +1,0 @@
-/home/arthas/program/mice_physiology/build/CMakeFiles/rebuild_cache.dir
-/home/arthas/program/mice_physiology/build/CMakeFiles/cosinor.dir
-/home/arthas/program/mice_physiology/build/CMakeFiles/test.dir
-/home/arthas/program/mice_physiology/build/CMakeFiles/mylib.dir
-/home/arthas/program/mice_physiology/build/CMakeFiles/edit_cache.dir
-/home/arthas/program/mice_physiology/build/CMakeFiles/main.dir
