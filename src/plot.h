@@ -12,7 +12,12 @@
 typedef enum{
     GAVERAGE,
     GINDIVIDUAL,
-    GDEVIATION
+    GDEVIATION,
+    GMID,
+    GMIN,
+    GMAX,
+    GPOWERSPEC, 
+    GCHECK
 }Gtype;
 
 FILE* gnuplot_create_t(void);

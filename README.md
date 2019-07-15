@@ -42,3 +42,12 @@
     	    Generate a pdf file for the graph, followed by a file name. If 
     	not seted, show a gnuplot window
     
+## TODO 
+# fix main logic
+    [ ] make some variables to be global 
+# fix utility functions 
+    [ ] check if gtk of pdf 
+    [ ] check the graph type
+    [ ] fix the check progress
+    [ ] make the pdf output name based on mice_name & graph_type & duration 
+
