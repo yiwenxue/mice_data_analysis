@@ -23,7 +23,6 @@ static struct option long_options[]={
     {"mean",    no_argument,        0,  'm'}, //mean
     {"std",     no_argument,        0,  's'}, //std
     {"graph-type",required_argument,0,  't'}, //TYPE of diagram
-    {"checkp",  no_argument,        0,  'c'}, //check period
     {"duration",required_argument,  0,  'D'}, //Time duration
     {"dlength", required_argument,  0,  'L'}, //single dfa length
     {"startp",  required_argument,  0,  'P'}, //start point
@@ -37,8 +36,7 @@ char *desc[]={
     "Exec dfa, followed by dfa order.",
     "Exec mean analysis",
     "Exec standard analysis",
-    "The type of graph. [ GINDIVIDUAL | GAVERAGE | GDEVIATION]",
-    "Check if the period equals to 24h",
+    "The type of graph. [ GINDIVIDUAL | GAVERAGE | GDEVIATION | GMID | GMIN | GMAX | GPOWERSPEC | GCHECK ]",
     "Set the duration of a single segment, 1 = 10sec (1080 = 3h)",
     "Set the whole length of individual dfa, 1 = 10sec",
     "Set the start point of individual dfa, 1 = 10sec",
@@ -46,6 +44,8 @@ char *desc[]={
     "Generate a pdf file for the graph, followed by a file name. If \n\tnot seted, show a gnuplot window",
     ""
 };
+
+char name[255],type[255],path[255];
 
 void print_usage(void){
     printf("Usage: \n./main [OPTION]... [ARGS]... \n");
@@ -62,7 +62,7 @@ void print_usage(void){
 
 int main(int argc,char** argv){
      
-    int ifflag =0, iftypef =0, dfaf=0, meanf=0, stdf =0, gtypef =0, checkf =0,
+    int ifflag =0, iftypef =0, dfaf=0, meanf=0, stdf =0, gtypef =0,
         durationf =0, dlengthf =0, startpf =0, gsizef =0, outputf =0; /*flags hahah*/
     Gtype graphtype;
     Ftype filetype;
@@ -74,7 +74,7 @@ int main(int argc,char** argv){
 
     /* Read parameters from command line; */
     int long_index = 0, opt = 0;
-    while((opt = getopt_long(argc,argv,"f:T:d:mst:cD:L:P:S:o:",long_options,&long_index)) != -1){
+    while((opt = getopt_long(argc,argv,"f:T:d:mst:D:L:P:S:o:",long_options,&long_index)) != -1){
         switch(opt){
             case 'f': ifflag = 1;
                       strcpy(ifname,optarg);
@@ -87,31 +87,22 @@ int main(int argc,char** argv){
             case 'd': dfaf = 1;
                       meanf = 0;
                       stdf = 0;
-                      checkf =0;
                       order = atoi(optarg);
                       /* printf("meanf = %d\tstdf = %d\tcheckf = %d\tdfaf = %d\tdfa_order = %d\n",meanf,stdf,checkf,dfaf,order); */
                       break; 
             case 'm': meanf = 1;
                       dfaf = 0;
                       stdf = 0;
-                      checkf =0;
                       /* printf("meanf = %d\tstdf = %d\tcheckf = %d\tdfaf = %d\tdfa_order = %d\n",meanf,stdf,checkf,dfaf,order); */
                       break;
             case 's': stdf = 1;
                       dfaf = 0;
                       meanf = 0;
-                      checkf =0;
                       /* printf("meanf = %d\tstdf = %d\tcheckf = %d\tdfaf = %d\tdfa_order = %d\n",meanf,stdf,checkf,dfaf,order); */
                       break;
             case 't': gtypef = 1;
                       strcpy(gtype,optarg);
                       /* printf("gtypef = %d\tgtype = %s\n",gtypef,gtype); */
-                      break;
-            case 'c': checkf = 1;
-                      meanf = 0;
-                      stdf = 0;
-                      dfaf = 0;
-                      /* printf("meanf = %d\tstdf = %d\tcheckf = %d\tdfaf = %d\tdfa_order = %d\n",meanf,stdf,checkf,dfaf,order); */
                       break;
             case 'D': durationf = 1;
                       duration = atoi(optarg);
@@ -147,7 +138,6 @@ int main(int argc,char** argv){
    double *data; 
    int lines = 0;
 
-   char name[255],type[255],path[255];
    memset(name,'\0',255);
    memset(path,'\0',255);
    memset(type,'\0',255);
@@ -178,6 +168,7 @@ int main(int argc,char** argv){
        return -1;
    }
 
+   // Check file name according to the file type
    if(filetype == MICE_DATA || filetype == MICE_DATA_38){
        //CHEKC THE MICE_DATA* FILE THYE
        mice_name(ifname,path,name,type);
@@ -190,20 +181,37 @@ int main(int argc,char** argv){
            graphtype = GAVERAGE;
        }else if(!strcmp(gtype,"GINDIVIDUAL")){
            graphtype = GINDIVIDUAL;
+       }else if(!strcmp(gtype,"GMID")){
+           graphtype = GMID;
+       }else if(!strcmp(gtype,"GMAX")){
+           graphtype = GMAX;
+       }else if(!strcmp(gtype,"GMIN")){
+           graphtype = GMIN;
        }else if(!strcmp(gtype,"GDEVIATION")){
            graphtype = GDEVIATION;
+       }else if(!strcmp(gtype,"GCHECK")){
+           if(filetype == MICE_DATA_38)
+               graphtype = GCHECK; // Set the graph type onlyif the file contains 38 days data.
+           else {
+               fprintf(stderr,"Filetype error. MICE_DATA_38 nedded.\nExit...\n");
+               return -1;
+           }
+       }else if(!strcmp(gtype,"GPOWERSPEC")){
+           graphtype = GPOWERSPEC;
        }else{
-           fprintf(stderr,"Graph type: GAVERAGE | GINDIVIDUAL | GDEVIATION\n");
+           fprintf(stderr,"Graph type: GINDIVIDUAL|GAVERAGE|GDEVIATION|GMID|GMIN|GMAX|GPOWERSPEC|GCHECK\n");
            return -1;
        }
    }else
-       graphtype = GAVERAGE;
+       graphtype = GAVERAGE; // set a default graph type 
 
+   // Set an time duration of every windows(segment)
    if(duration % 360 != 0){
        fprintf(stderr,"Duration is not complete hours. You'd better set it to be N*360 (N is an integer)\n");
        return -1;
    }
 
+   // Set the analysis type  And then process
    if(dfaf){
        if(filetype == MICE_DATA_38)
            mice38_dfa(name,type,data,lines,order,duration,graphtype,outputf,outname);
@@ -220,16 +228,11 @@ int main(int argc,char** argv){
            mice38_std(name,type,data,lines,duration,graphtype,outputf,outname);
        if(filetype == MICE_DATA)
            mice_std(name,path,type,data,lines,duration);
-   }else if(checkf){
-       if(filetype == MICE_DATA_38)
-           ;
-       else {
-           fprintf(stderr,"Filetype error. MICE_DATA_38 nedded.\nExit...\n");
-           return -1;
-       }
-   }
+   }else 
+       return -1; 
+   
    free(data);
 
-    return 0;
+   return 0;
 }
 

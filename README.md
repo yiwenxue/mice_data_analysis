@@ -11,6 +11,7 @@
 # Not finished
     [ ] add some linux filesystem support into file.c 
 
+
 # Usage 
     $ ./test [path] -- will do analysis on every temp or act file(with two days data)
     $ ./main --help  -- will show you how to use this program 
@@ -41,10 +42,11 @@
     	-o, --output
     	    Generate a pdf file for the graph, followed by a file name. If 
     	not seted, show a gnuplot window
-    
+
+
 ## TODO 
 # fix main logic
-    [ ] make some variables to be global 
+    [x] make some variables to be global 
 # fix utility functions 
     [ ] check if gtk of pdf 
     [ ] check the graph type
