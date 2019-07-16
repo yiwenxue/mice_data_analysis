@@ -300,3 +300,72 @@ cosinor(double *x,
     return rsq; 
 }
 
+double get_mid(double *data, int step, int num){
+    double *out;
+    num = num/step;
+    out = (double *)malloc(sizeof(double)*num);
+    for(int i=0;i<num;i++){
+        out[i] = data[i*step];
+    }
+    double temp =0;
+    for(int i=0;i<num;i++){
+        for(int j=0;j<i;j++){
+            if(out[j] > out[i]){
+                temp = out[i]; 
+                out[i] = out[j];
+                out[j] = temp;
+            }
+        }
+    }
+    double mid;
+    if(num%2==0){
+        mid = out[num/2] + out[num/2-1];
+        mid /= 2.0;
+    }else{
+        mid = out[(num-1)/2];
+    }
+    free(out);
+    return mid;
+}
+
+double get_max(double *data, int step, int num){
+    double *out;
+    num = num/step;
+    out = (double *)malloc(sizeof(double)*num);
+    for(int i=0;i<num;i++){
+        out[i] = data[i*step];
+    }
+    double temp =0;
+    for(int i=0;i<num;i++){
+        for(int j=0;j<i;j++){
+            if(out[j] > out[i]){
+                temp = out[i]; 
+                out[i] = out[j];
+                out[j] = temp;
+            }
+        }
+    }
+    free(out);
+    return out[0];
+}
+
+double get_min(double *data, int step, int num){
+    double *out;
+    num = num/step;
+    out = (double *)malloc(sizeof(double)*num);
+    for(int i=0;i<num;i++){
+        out[i] = data[i*step];
+    }
+    double temp =0;
+    for(int i=0;i<num;i++){
+        for(int j=0;j<i;j++){
+            if(out[j] > out[i]){
+                temp = out[i]; 
+                out[i] = out[j];
+                out[j] = temp;
+            }
+        }
+    }
+    free(out);
+    return out[num-1];
+}

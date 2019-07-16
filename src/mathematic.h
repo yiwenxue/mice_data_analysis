@@ -34,6 +34,10 @@ double stats_var(double* data, int size);
 
 double stats_mean(double *data,int size); 
 
-int cosinor(double *x,double *y,int size, double *store,int degree);
+double cosinor(double *x,double *y,int size, double *store,int degree);
 
-int fit_sin4(double *func,double *x,double *y,int size);
+double get_mid(double *data, int step, int num);
+
+double get_max(double *data, int step, int num);
+
+double get_min(double *data, int step, int num);

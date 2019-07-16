@@ -7,10 +7,10 @@
     [x] MULTI PARAMETER LINEAR FIT 
     [x] RHYTHM ANALYSIS 
     [x] COSINOR PRECESSION
+    [x] add some linux filesystem support into file.c 
 
 # Not finished
-    [ ] add some linux filesystem support into file.c 
-
+    [ ] See TODO list
 
 # Usage 
     $ ./test [path] -- will do analysis on every temp or act file(with two days data)
@@ -45,11 +45,12 @@
 
 
 ## TODO 
-# fix main logic
+# fix main
+    [x] fix program judge logic
     [x] make some variables to be global 
 # fix utility functions 
-    [ ] check if gtk of pdf 
-    [ ] check the graph type
+    [x] check if gtk or pdf 
+    [x] check the graph type
     [ ] fix the check progress
-    [ ] make the pdf output name based on mice_name & graph_type & duration 
+    [x] make the pdf output name based on mice_name & graph_type & duration 
 

@@ -50,6 +50,7 @@ int mice_name(char *inname,
     return 0;
 }
 
+char* name_builder(){}
 
 int dfa_fnsize(int num){
     return (int)(log10((double)num/5.0)*100);
@@ -60,18 +61,17 @@ int dfa_fnsize(int num){
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice38_dfa(char *name ,
-             char *type, 
-             double *data, 
+int mice38_dfa(double *data, 
              int size, 
              int order, 
              int duration, 
              Gtype graphtype, 
-             int outputf, 
-             char *outname)
+             int outputf) 
 {
 
     int ssize = dfa_fnsize(duration);
+    char outname[255];
+    memset(outname,'\0',255);
 
     //num of colume is sagments, num of raws is different days;
     int colum = 48*360 / duration;
@@ -93,9 +93,11 @@ int mice38_dfa(char *name ,
         n[i] = 0.0;
     }
 
-
     double mean =0.0; int cont =0;
-    if( graphtype == GAVERAGE ){
+    double *meany,*devy,*std,*mid;
+    double meant = 0.0;
+
+    if( graphtype != GINDIVIDUAL ){
         for(int j=0;j<raw;j++){
             for(int i=0;i<colum;i++){
                 xx[j*colum+i] = (i+0.5)*((double)duration/360.0); // hours
@@ -103,56 +105,75 @@ int mice38_dfa(char *name ,
                 yy[j*colum+i] = fit[1];
             }
         }
-    }else if(graphtype == GINDIVIDUAL){
-        printf("Not usable.\n");
-    }else 
-        return -1;
 
-    double *meany,*devy,*std;
-    meany = (double*)malloc(sizeof(double)*colum);
-    devy = (double*)malloc(sizeof(double)*colum);
-    std = (double*)malloc(sizeof(double)*colum);
-    for(int i=0;i<colum;i++){
-        meany[i] = 0.0;
-        devy[i] = 0.0;
-        std[i] = 0.0;
-    }
+        meany = (double*)malloc(sizeof(double)*colum);
+        devy = (double*)malloc(sizeof(double)*colum);
+        std = (double*)malloc(sizeof(double)*colum);
+        mid = (double*)malloc(sizeof(double)*colum);
+        for(int i=0;i<colum;i++){
+            meany[i] = 0.0;
+            devy[i] = 0.0;
+            std[i] = 0.0;
+            mid[i] = 0.0;
+        }
 
-    //calculation of mean value;
-    for(int i=0;i<colum;i++){
-        for(int j=0;j<raw;j++){
-            meany[i] += yy[j*colum+i];
+        //calculation of mean value;
+        for(int i=0;i<colum;i++){
+            for(int j=0;j<raw;j++){
+                meany[i] += yy[j*colum+i];
+            }
+            meany[i] /= raw;
+            mid[i] = get_mid(yy+i,colum,colum*raw);
         }
-        meany[i] /= raw;
-    }
-    double meant = 0.0;
-    for(int i=0;i<colum;i++){
-        meant += meany[i];
-    }
-    meant /= (double)colum; 
-    /* printf("meant = %f\n",meant); */
-    //calculation of deviation;
-    for(int i=0;i<colum;i++){
-        devy[i] = meany[i] - meant;
-        for(int j=0;j<raw;j++){
-            std[i] += pow(yy[j*colum+i] - meany[i],2.0);
+        for(int i=0;i<colum;i++){
+            meant += meany[i];
         }
-        std[i] = sqrt(std[i]/raw);
-        devy[i] /= meany[i] /100.0;
-        /* std[i] = std[i] / meany[i] * 100.0; */
+        meant /= (double)colum; 
+
+        //calculation of deviation;
+        for(int i=0;i<colum;i++){
+            devy[i] = meany[i] - meant;
+            for(int j=0;j<raw;j++){
+                std[i] += pow(yy[j*colum+i] - meany[i],2.0);
+            }
+            std[i] = sqrt(std[i]/raw);
+            devy[i] /= meany[i] /100.0;
+            /* std[i] = std[i] / meany[i] * 100.0; */
+        }
+        //finished !!! 
     }
-    //finished !!! 
 
     //Wants to print the results into a file;
     FILE *output; 
     output = fopen("/tmp/mice","w");
     for(int i=0;i<colum;i++){
-        fprintf(output,"%.2f\t%.3f\t%.3f\t%.3f\n",xx[i],meany[i],devy[i],std[i]);
+        fprintf(output,"%.2f\t%.3f\t%.3f\t%.3f\t%.3f\n",xx[i],meany[i],mid[i],devy[i],std[i]);
     }
     fclose(output);
 
     double func[5];
-    double rsq = cosinor(xx,meany,colum,func,5);
+    double rsq =0.0;
+    
+    if(graphtype == GMID){
+        sprintf(outname,"%s/%s_%s_DFA%d_%d_GMID.pdf",path,name,type,order,duration);
+        rsq = cosinor(xx,mid,colum,func,5);
+    }else if(graphtype == GMIN ){
+        /* sprintf(outname,"%s/%s_%s_DFA%d_%d_GMIN.pdf",path,name,type,order,duration); */
+        /* rsq = cosinor(xx,min,colum,func,5); */
+    }else if(graphtype == GMAX ){
+        /* sprintf(outname,"%s/%s_%s_DFA%d_%d_GMAX.pdf",path,name,type,order,duration); */
+        /* rsq = cosinor(xx,max,colum,func,5); */
+    }else if(graphtype == GAVERAGE ){
+        sprintf(outname,"%s/%s_%s_DFA%d_%d_GAVERAGE.pdf",path,name,type,order,duration);
+        rsq = cosinor(xx,meany,colum,func,5);
+    }else if(graphtype == GDEVIATION ){
+        sprintf(outname,"%s/%s_%s_DFA%d_%d_GDEVIATION.pdf",path,name,type,order,duration);
+        rsq = cosinor(xx,std,colum,func,5);
+    }else if(graphtype == GPOWERSPEC ){
+        /* sprintf(outname,"%s/%s_%s_DFA%d_%d_GPOWERSPEC.pdf",path,name,type,order,duration); */
+        ;// Define a method to solve this problem
+    }
+    
 
     //
     // The progress to plot a graph;
@@ -165,22 +186,63 @@ int mice38_dfa(char *name ,
     }
     double t = M_PI/12.0;
     char cmd[255];
-    plot_cmd(plo,"set terminal qt size 500,400");
+
+    if(!outputf)
+        plot_cmd(plo,"set terminal qt size 500,400");
+    else{
+        plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+        sprintf(cmd,"set output %s",outname);
+        plot_cmd(plo,cmd);
+    }
+
     plot_cmd(plo,"set grid");
-    /* plot_cmd(plo,"set ylabel \"\%Deviation from mean α\""); */
-    /* plot_cmd(plo,"set ylabel \"\%Deviation\""); */
-    plot_cmd(plo,"set ylabel \"α\"");
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
-    sprintf(cmd,"set title \"DFA%d of %s - day average(%s)\"",order,type,name);
-    plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
-    sprintf(cmd,"plot \'/tmp/mice\' u 1:2 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
-            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+
+    if(graphtype == GMID){
+        plot_cmd(plo,"set ylabel \"α min\"");
+        sprintf(cmd,"set title \"DFA%d of %s - day mid(%s)\"",order,type,name);
+        plot_cmd(plo,cmd);
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }else if(graphtype == GMIN ){
+        plot_cmd(plo,"set ylabel \"α mid\"");
+        sprintf(cmd,"set title \"DFA%d of %s - day min(%s)\"",order,type,name);
+        plot_cmd(plo,cmd);
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+        return -1;
+    }else if(graphtype == GMAX ){
+        plot_cmd(plo,"set ylabel \"α max\"");
+        sprintf(cmd,"set title \"DFA%d of %s - day max(%s)\"",order,type,name);
+        plot_cmd(plo,cmd);
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+        return -1;
+    }else if(graphtype == GAVERAGE ){
+        plot_cmd(plo,"set ylabel \"α(day average)\"");
+        sprintf(cmd,"set title \"DFA%d of %s - day average(%s)\"",order,type,name);
+        plot_cmd(plo,cmd);
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:2 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }else if(graphtype == GDEVIATION ){
+        plot_cmd(plo,"set ylabel \"\%Deviation from mean α\"");
+        sprintf(cmd,"set title \"DFA%d of %s - day average(%s)\"",order,type,name);
+        plot_cmd(plo,cmd);
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:5 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }else if(graphtype == GPOWERSPEC ){
+        plot_cmd(plo,"set ylabel \"powerspectrum\"");
+        sprintf(cmd,"set title \"DFA%d powerspectrum of %s (%s)\"",order,type,name);
+        plot_cmd(plo,cmd);
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+        return -1;
+    }
     plot_cmd(plo,cmd);
 
-    free(yy);free(xx);free(devy);free(meany);free(fn);free(n);
-    free(std);free(err);
+    free(yy);free(xx);free(devy);free(meany);free(fn);free(mid);free(n);free(std);free(err);
     return 0;
 }
 /*
@@ -188,19 +250,20 @@ int mice38_dfa(char *name ,
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice38_mean(char *name ,
-        char *type, 
+int mice38_mean(
         double *data, 
         int size, 
         int duration, 
         Gtype graphtype, 
-        int outputf, 
-        char *outname)
+        int outputf)
 {
 
     //num of colume is sagments, num of raws is different days;
     int colum = 48*360 / duration;
     int  raw = 18;
+
+    char outname[255];
+    memset(outname,'\0',255);
 
     /* printf("colum: %d\nraw: %d\n",colum,raw); */
     double *xx,*yy;
@@ -214,15 +277,19 @@ int mice38_mean(char *name ,
         }
     }
 
-    double *meany,*devy,*std,*devstd;
+    double *meany,*devy,*std,*devstd,*mid;
+
     meany = (double*)malloc(sizeof(double)*colum);
     devy = (double*)malloc(sizeof(double)*colum);
     std = (double*)malloc(sizeof(double)*colum);
+    mid = (double*)malloc(sizeof(double)*colum);
     devstd = (double*)malloc(sizeof(double)*colum);
+
     for(int i=0;i<colum;i++){
         meany[i] = 0.0;
         devy[i] = 0.0;
         std[i] = 0.0;
+        mid[i] = 0.0;
         devstd[i] = 0.0;
     }
 
@@ -232,8 +299,10 @@ int mice38_mean(char *name ,
             meany[i] += yy[j*colum+i];
             /* printf("[%d,%d]: %lf\n",i,j,yy[j*colum+i]); */
         }
+        mid[i] = get_mid(yy+i,colum,colum*raw);
         meany[i] /= raw;
     }
+
     double meant = 0.0;
     for(int i=0;i<colum;i++){
         meant += meany[i];
@@ -259,20 +328,22 @@ int mice38_mean(char *name ,
     output = fopen("/tmp/mice","w");
     double rsq = 0.0;
 
+    for(int i=0;i<colum;i++){
+        fprintf(output,"%.2f\t%.3f\t%.3f\t%.3f\t%.3f\n",xx[i],meany[i],mid[i],std[i],devstd[i]);
+    }
+    fclose(output);
+
     if( graphtype == GAVERAGE ){
+        sprintf(outname,"%s/%s_%s_MEAN_%d_GAVERAGE.pdf",path,name,type,duration);
         rsq = cosinor(xx,meany,colum,func,5);
-        for(int i=0;i<colum;i++){
-            fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],meany[i],std[i]);
-        }
     }else if(graphtype == GDEVIATION){
+        sprintf(outname,"%s/%s_%s_MEAN_%d_GDEVIATION.pdf",path,name,type,duration);
         rsq = cosinor(xx,devy,colum,func,5);
-        for(int i=0;i<colum;i++){
-            fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],devstd[i]);
-        }
+    }else if(graphtype == GMID){
+        sprintf(outname,"%s/%s_%s_MEAN_%d_GMIN.pdf",path,name,type,duration);
+        rsq = cosinor(xx,mid,colum,func,5);
     }else 
         return -1;
-
-    fclose(output);
 
 
     //
@@ -286,30 +357,45 @@ int mice38_mean(char *name ,
     }
     double t = M_PI/12.0;
     char cmd[255];
+
+    //Check the output file name...
+    if(!outputf)
+        plot_cmd(plo,"set terminal qt size 500,400");
+    else{
+        plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+        sprintf(cmd,"set output %s",outname);
+        plot_cmd(plo,cmd);
+    }
+
     plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
-    if(graphtype == GAVERAGE ){
-        sprintf(cmd,"set title \" Mean %s - day average(%s)\"",type,name);
-        plot_cmd(plo,"set ylabel \"Average\"");
-    }else {
-        sprintf(cmd,"set title \" Mean of %s - day average(%s)\"",type,name);
-        plot_cmd(plo,"set ylabel \"\%Deviation\"");
-    }
-    plot_cmd(plo,cmd);
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
-    sprintf(cmd,"plot \'/tmp/mice\' u 1:2:3 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
-            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
-    /* printf(" y = %.3f + %.3f * cos(%.3f * x + %.3f )+%.3f * cos(%.3f * x+ %.3f )\n", */
-    /*         func[0],func[1],t,func[2],func[3],2*t,func[4]); */
 
+    if(graphtype == GAVERAGE ){
+        sprintf(cmd,"set title \" Mean %s - day average(%s)\"",type,name);
+        plot_cmd(plo,cmd);
+        plot_cmd(plo,"set ylabel \"Average\"");
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:2 with points pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }else if(graphtype == GDEVIATION ){
+        sprintf(cmd,"set title \" Mean of %s - day average(%s)\"",type,name);
+        plot_cmd(plo,cmd);
+        plot_cmd(plo,"set ylabel \"\%Deviation\"");
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:4 with points pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }else if(graphtype == GMID ){
+        sprintf(cmd,"set title \" Mean of %s - day mid(%s)\"",type,name);
+        plot_cmd(plo,cmd);
+        plot_cmd(plo,"set ylabel \"Mid of Average\"");
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }
     plot_cmd(plo,cmd);
 
-    free(yy);free(xx);free(devy);free(meany);
-    free(std);
-    free(devstd);
+    free(yy);free(xx);free(devy);free(meany);free(std);free(devstd);free(mid);
     return 0;
 }
 
@@ -318,19 +404,20 @@ int mice38_mean(char *name ,
  * author: Yiwen Xue
  * date: 20/05/2019
  * */
-int mice38_std(char *name ,
-             char *type, 
+int mice38_std(
              double *data, 
              int size, 
              int duration, 
              Gtype graphtype, 
-             int outputf, 
-             char *outname)
+             int outputf)
 {
 
     //num of colume is sagments, num of raws is different days;
     int colum = 48*360 / duration;
     int  raw = 18;
+
+    char outname[255];
+    memset(outname,'\0',255);
 
     /* printf("colum: %d\nraw: %d\n",colum,raw); */
     double *xx,*yy;
@@ -344,14 +431,17 @@ int mice38_std(char *name ,
         }
     }
 
-    double *meany,*devy,*std;
+    double *meany,*devy,*std,*mid;
     meany = (double*)malloc(sizeof(double)*colum);
     devy = (double*)malloc(sizeof(double)*colum);
     std = (double*)malloc(sizeof(double)*colum);
+    mid = (double*)malloc(sizeof(double)*colum);
+    
     for(int i=0;i<colum;i++){
         meany[i] = 0.0;
         devy[i] = 0.0;
         std[i] = 0.0;
+        mid[i] = 0.0;
     }
 
     //calculation of mean value;
@@ -360,8 +450,10 @@ int mice38_std(char *name ,
             meany[i] += yy[j*colum+i];
             /* printf("[%d,%d]: %lf\n",i,j,yy[j*colum+i]); */
         }
+        mid[i] = get_mid(yy+i,colum,colum*raw);
         meany[i] /= raw;
     }
+    
     double meant = 0.0;
     for(int i=0;i<colum;i++){
         meant += meany[i];
@@ -376,7 +468,6 @@ int mice38_std(char *name ,
         }
         std[i] = sqrt(std[i]/raw);
         devy[i] /= meany[i] /100.0;
-        std[i] = std[i] / meany[i] * 100.0;
     }
     //finished !!! 
 
@@ -385,63 +476,70 @@ int mice38_std(char *name ,
     //Wants to print the results into a file;
     FILE *output; 
     output = fopen("/tmp/mice","w");
-
     double rsq =  0.0;
+
+    for(int i=0;i<colum;i++){
+        fprintf(output,"%.2f\t%.3f\t%.3f\t%.3f\n",xx[i],meany[i],mid[i],std[i]);
+    }
+    fclose(output);
+
     if( graphtype == GAVERAGE ){
+        sprintf(outname,"%s/%s_%s_STD_%d_GAVERAGE.pdf",path,name,type,duration);
         rsq = cosinor(xx,meany,colum,func,5);
-        /* fit_sin4(func,xx,devy,colum); */
-        for(int i=0;i<colum;i++){
-            fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],meany[i],std[i]);
-        }
     }else if(graphtype == GDEVIATION){
+        sprintf(outname,"%s/%s_%s_STD_%d_GDEVIATION.pdf",path,name,type,duration);
         rsq = cosinor(xx,devy,colum,func,5);
-        /* fit_sin4(func,xx,devy,colum); */
-        for(int i=0;i<colum;i++){
-            fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],devy[i],std[i]);
-        }
+    }else if(graphtype == GMID){
+        sprintf(outname,"%s/%s_%s_STD_%d_GMID.pdf",path,name,type,duration);
+        rsq = cosinor(xx,mid,colum,func,5);
     }else 
         return -1;
 
-    fclose(output);
-
-
-    //
     // The progress to plot a graph;
     //
     FILE *plo; 
+    double t = M_PI/12.0;
+    char cmd[255];
     plo = gnuplot_create_t();
     if(plo == NULL){
         fprintf(stdout,"Error when call gnuplot.\n");
         return 0;
     }
-    double t = M_PI/12.0;
-    char cmd[255];
+
+    //Check the output file name...
+    if(!outputf)
+        plot_cmd(plo,"set terminal qt size 500,400");
+    else{
+        plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+        sprintf(cmd,"set output %s",outname);
+        plot_cmd(plo,cmd);
+    }
+    
     plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
-    if(graphtype == GAVERAGE ){
-        sprintf(cmd,"set title \" STD %s - day average(%s)\"",type,name);
-        plot_cmd(plo,"set ylabel \"Average\"");
-    }else {
-        sprintf(cmd,"set title \" STD of %s - day average(%s)\"",type,name);
-        plot_cmd(plo,"set ylabel \"\%Deviation\"");
-    }
-    plot_cmd(plo,cmd);
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
     plot_cmd(plo,cmd);
     plot_cmd(plo,"set xrange [0:48]");
-    sprintf(cmd,"plot \'/tmp/mice\' u 1:2:3 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
-            func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
-    /* printf(" y = %.3f + %.3f * cos(%.3f * x + %.3f )+%.3f * cos(%.3f * x+ %.3f )\n", */
-    /*         func[0],func[1],t,func[2],func[3],2*t,func[4]); */
+
+
+    if(graphtype == GAVERAGE ){
+        sprintf(cmd,"set title \" STD %s - day average(%s)\"",type,name);
+        plot_cmd(plo,"set ylabel \"Average\"");
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:2:4 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }else if(graphtype == GMID){
+        sprintf(cmd,"set title \"MID STD of %s - day average(%s)\"",type,name);
+        plot_cmd(plo,"set ylabel \"\%Deviation\"");
+        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
+                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
+    }
 
     plot_cmd(plo,cmd);
 
-    free(yy);free(xx);free(devy);free(meany);
-    free(std);
+    free(yy);free(xx);free(devy);free(meany);free(std);free(mid);
     return 0;
 }
-
 
 int check_circadian(char *filename,int breakpoint){
     FILE *input;
@@ -606,6 +704,7 @@ int mice_dfa(char *name,    //file name of data
     return 1;
 }
 
+// process dfa at any point with certen duration 
 int mice_dfap(char *name,    //file name of data
         char *path,         //full path to data
         char *type,         //activity or temperature

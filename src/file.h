@@ -11,6 +11,7 @@
 #include <math.h>
 
 typedef enum{
+    MICE_DATA_38,
     MICE_DATA,
     SINGLE_COLUM
 }Ftype;
