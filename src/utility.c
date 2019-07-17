@@ -50,7 +50,6 @@ int mice_name(char *inname,
     return 0;
 }
 
-char* name_builder(){}
 
 int dfa_fnsize(int num){
     return (int)(log10((double)num/5.0)*100);
@@ -198,7 +197,7 @@ int mice38_dfa(double *data,
     plot_cmd(plo,"set grid");
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
-    plot_cmd(plo,"set xrange [0:48]");
+    /* plot_cmd(plo,"set xrange [0:48]"); */
 
     if(graphtype == GMID){
         plot_cmd(plo,"set ylabel \"α min\"");
@@ -372,7 +371,7 @@ int mice38_mean(
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
     plot_cmd(plo,cmd);
-    plot_cmd(plo,"set xrange [0:48]");
+    /* plot_cmd(plo,"set xrange [0:48]"); */
 
     if(graphtype == GAVERAGE ){
         sprintf(cmd,"set title \" Mean %s - day average(%s)\"",type,name);
@@ -520,7 +519,7 @@ int mice38_std(
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
     plot_cmd(plo,cmd);
-    plot_cmd(plo,"set xrange [0:48]");
+    /* plot_cmd(plo,"set xrange [0:48]"); */
 
 
     if(graphtype == GAVERAGE ){

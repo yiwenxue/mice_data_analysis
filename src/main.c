@@ -208,7 +208,7 @@ int main(int argc,char** argv){
    // Set an time duration of every windows(segment)
    if(duration % 360 != 0){
        fprintf(stderr,"Duration is not complete hours. You'd better set it to be N*360 (N is an integer)\n");
-       return -1;
+       /* return -1; */
    }
 
    // Set the analysis type  And then process
