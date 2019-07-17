@@ -210,6 +210,7 @@ int main(int argc,char** argv){
        fprintf(stderr,"Duration is not complete hours. You'd better set it to be N*360 (N is an integer)\n");
        /* return -1; */
    }
+   fprintf(stdout,"outputf = %d\n",outputf);
 
    // Set the analysis type  And then process
    if(dfaf){

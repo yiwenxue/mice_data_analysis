@@ -102,7 +102,7 @@ detrend_flucuation(int order,                      //order of DFA
                    double *fit                     //final fit function
 )
 {
-    if (num < 1000 ){
+    if (num < 100 ){
         printf ("The data samples is not enough.");
         return 0;
     }

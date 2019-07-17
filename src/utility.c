@@ -190,7 +190,7 @@ int mice38_dfa(double *data,
         plot_cmd(plo,"set terminal qt size 500,400");
     else{
         plot_cmd(plo,"set terminal pdf size 6.0,4.0");
-        sprintf(cmd,"set output %s",outname);
+        sprintf(cmd,"set output \"%s\"",outname);
         plot_cmd(plo,cmd);
     }
 
@@ -240,6 +240,7 @@ int mice38_dfa(double *data,
         return -1;
     }
     plot_cmd(plo,cmd);
+    plot_cmd(plo,"set out");
 
     free(yy);free(xx);free(devy);free(meany);free(fn);free(mid);free(n);free(std);free(err);
     return 0;
@@ -362,11 +363,11 @@ int mice38_mean(
         plot_cmd(plo,"set terminal qt size 500,400");
     else{
         plot_cmd(plo,"set terminal pdf size 6.0,4.0");
-        sprintf(cmd,"set output %s",outname);
+        sprintf(cmd,"set output \"%s\"",outname);
+        printf("%s\n",cmd);
         plot_cmd(plo,cmd);
     }
 
-    plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
@@ -393,6 +394,7 @@ int mice38_mean(
                 func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     }
     plot_cmd(plo,cmd);
+    plot_cmd(plo,"set out");
 
     free(yy);free(xx);free(devy);free(meany);free(std);free(devstd);free(mid);
     return 0;
@@ -510,11 +512,10 @@ int mice38_std(
         plot_cmd(plo,"set terminal qt size 500,400");
     else{
         plot_cmd(plo,"set terminal pdf size 6.0,4.0");
-        sprintf(cmd,"set output %s",outname);
+        sprintf(cmd,"set output \"%s\"",outname);
         plot_cmd(plo,cmd);
     }
     
-    plot_cmd(plo,"set terminal qt size 500,400");
     plot_cmd(plo,"set grid");
     plot_cmd(plo,"set xlabel \"time(h)\"");
     plot_cmd(plo,"set xtics 3");
@@ -524,17 +525,20 @@ int mice38_std(
 
     if(graphtype == GAVERAGE ){
         sprintf(cmd,"set title \" STD %s - day average(%s)\"",type,name);
+        plot_cmd(plo,cmd);
         plot_cmd(plo,"set ylabel \"Average\"");
         sprintf(cmd,"plot \'/tmp/mice\' u 1:2:4 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
                 func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     }else if(graphtype == GMID){
         sprintf(cmd,"set title \"MID STD of %s - day average(%s)\"",type,name);
+        plot_cmd(plo,cmd);
         plot_cmd(plo,"set ylabel \"\%Deviation\"");
         sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
                 func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
     }
 
     plot_cmd(plo,cmd);
+    plot_cmd(plo,"set out");
 
     free(yy);free(xx);free(devy);free(meany);free(std);free(mid);
     return 0;
