@@ -10,7 +10,12 @@
 #include<gsl/gsl_statistics_double.h>
 #include<gsl/gsl_sf.h>
 #include<stdbool.h>
+#include<fftw3.h>
+#include<malloc.h>
 
+#define N 1000
+#define RE 0
+#define IM 1
 
 bool                    //be of no use
 polyfit(int size,       //the total number of the data 
@@ -41,3 +46,13 @@ double get_mid(double *data, int step, int num);
 double get_max(double *data, int step, int num);
 
 double get_min(double *data, int step, int num);
+
+int cross_corr(double *r,double *x,double *y,int num);
+
+void hilbert_trans(double *in,double *output,int num);
+
+void convol(double* input1, double* input2, double * output, int mm, int nn);
+
+int fft(fftw_complex *in, fftw_complex *out, int num);
+
+int ifft(fftw_complex *in, fftw_complex *out, int num);

@@ -369,3 +369,98 @@ double get_min(double *data, int step, int num){
     free(out);
     return out[num-1];
 }
+
+int cross_corr(double *r,double *x,double *y,int num){
+    double mx,my,sx,sy,sxy,denom;
+    mx = 0;
+    my = 0;   
+    for (int i=0;i<num;i++) {
+        mx += x[i];
+        my += y[i];
+    }
+    mx /= num;
+    my /= num;
+
+    sx = 0;
+    sy = 0;
+    for (int i=0;i<num;i++) {
+        sx += (x[i] - mx) * (x[i] - mx);
+        sy += (y[i] - my) * (y[i] - my);
+    }
+    denom = sqrt(sx*sy);
+
+    int maxdelay = num -1;
+    int j=0;
+    for(int delay = -maxdelay;delay < maxdelay; delay ++){
+        sxy = 0.0;
+        for(int i=0;i<num;i++){
+            j=i+delay;
+            if (j < 0 || j >= num)
+                continue;
+            else
+                sxy += (x[i] - mx)*(y[j] -my);
+        }
+        r[delay + maxdelay] = sxy / denom;
+    }
+    return 1;
+}
+
+void hilbert_trans(double *in,double *output,int num){
+    int i=0;
+    fftw_complex *out;
+    out = fftw_alloc_complex(num);
+    for(i=0;i<num;i++){
+        out[i][RE] = in[i];
+        out[i][IM] = 0.0;
+    }
+    fftw_plan plan;
+    plan = fftw_plan_dft_1d(num,out,out,FFTW_FORWARD,FFTW_ESTIMATE);
+    fftw_execute(plan);
+    fftw_destroy_plan(plan);
+    int hN = num>> 1;
+    int numRem = hN; 
+    for(i=1;i<hN;i++){
+        out[i][RE] *= 2;
+        out[i][IM] *= 2;
+    }
+
+    if(N%2 == 0)
+        numRem --;
+    else if(num>1){
+        out[hN][RE] *= 2;
+        out[hN][IM] *= 2;
+    }
+    for(i=hN+1;i<num;i++){
+        out[i][RE] = 0;
+        out[i][IM] = 0;
+    }
+
+    plan = fftw_plan_dft_1d(num,out,out,FFTW_BACKWARD,FFTW_ESTIMATE);
+    fftw_execute(plan);
+    fftw_destroy_plan(plan);
+
+    for(i=0;i<num;i++){
+        output[i] = out[i][IM]/num;
+    }
+    fftw_free(out);
+}
+
+int fft(fftw_complex *in, fftw_complex *out, int num){
+    fftw_plan p; 
+    p = fftw_plan_dft_1d(num,in,out,-1,FFTW_ESTIMATE); 
+    fftw_execute(p);
+    fftw_destroy_plan(p);
+    return 1;
+}
+
+int ifft(fftw_complex *in, fftw_complex *out, int num){
+    fftw_plan p; 
+    p = fftw_plan_dft_1d(num,in,out,+1,FFTW_ESTIMATE); 
+    fftw_execute(p);
+    fftw_destroy_plan(p);
+    for(int i=0;i<num;i++){
+        out[i][RE] /= num;
+        out[i][IM] /= num;
+    }
+    return 1;
+}
