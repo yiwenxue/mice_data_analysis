@@ -49,7 +49,7 @@ double get_min(double *data, int step, int num);
 
 int cross_corr(double *r,double *x,double *y,int num);
 
-void hilbert_trans(double *in,double *output,int num);
+void hilbert_trans(double *in,fftw_complex *output,int num);
 
 void convol(double* input1, double* input2, double * output, int mm, int nn);
 

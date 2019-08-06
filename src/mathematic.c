@@ -405,7 +405,7 @@ int cross_corr(double *r,double *x,double *y,int num){
     return 1;
 }
 
-void hilbert_trans(double *in,double *output,int num){
+void hilbert_trans(double *in,fftw_complex *output,int num){
     int i=0;
     fftw_complex *out;
     out = fftw_alloc_complex(num);
@@ -440,7 +440,8 @@ void hilbert_trans(double *in,double *output,int num){
     fftw_destroy_plan(plan);
 
     for(i=0;i<num;i++){
-        output[i] = out[i][IM]/num;
+        output[i][IM] = out[i][IM]/num;
+        output[i][RE] = out[i][RE]/num;
     }
     fftw_free(out);
 }

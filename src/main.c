@@ -36,7 +36,7 @@ char *desc[]={
     "Exec dfa, followed by dfa order.",
     "Exec mean analysis",
     "Exec standard analysis",
-    "The type of graph. [ GINDIVIDUAL | GAVERAGE | GDEVIATION | GMID | GMIN | GMAX | GPOWERSPEC | GCHECK ]",
+    "The type of graph. [ GINDIVIDUAL | GAVERAGE | GDEVIATION | GMID | GMIN | GSYNC | GCCOR | GPOWERSPEC | GCHECK ]",
     "Set the duration of a single segment, 1 = 10sec (1080 = 3h)",
     "Set the whole length of individual dfa, 1 = 10sec",
     "Set the start point of individual dfa, 1 = 10sec",
@@ -70,7 +70,7 @@ int main(int argc,char** argv){
     //default values
     int order = 1, width = 600, height = 450, duration = 1080, dlength = 1080, startp = 0;
 
-    char ifname[255], outname[255], gtype[255], iftype[255];
+    char ifname[255], outname[255], gtype[255], iftype[255], ifname2[255];
 
     /* Read parameters from command line; */
     int long_index = 0, opt = 0;
@@ -134,46 +134,6 @@ int main(int argc,char** argv){
         print_usage();
         return -1;
     }
-    /* Check if there is a data file, and readin data if true*/ 
-   double *data; 
-   int lines = 0;
-
-   memset(name,'\0',255);
-   memset(path,'\0',255);
-   memset(type,'\0',255);
-
-   //readin data with check process
-   if(ifflag){
-       if(iftypef){
-           if(!strcmp(iftype,"MICE_DATA_38")){
-               filetype = MICE_DATA_38;
-               data = read_mice_file(ifname,&lines);
-           }else if(!strcmp(iftype,"SINGLE_COLUM")){
-               filetype = SINGLE_COLUM;
-               data = read_single_colum_data(ifname,&lines);
-           }else if(!strcmp(iftype,"MICE_DATA")){
-               filetype = MICE_DATA;
-               data = read_mice_file(ifname,&lines);
-               //
-           }else{
-               fprintf(stderr,"File types: MICE_DATA | MICE_DATA_38 | SINGLE_COLUM\n");
-               return -1;
-           }
-       }else{
-           filetype = MICE_DATA;
-           data = read_mice_file(ifname,&lines);
-       }
-   }else{
-       fprintf(stderr,"An input data file is needed.\n");
-       return -1;
-   }
-
-   // Check file name according to the file type
-   if(filetype == MICE_DATA || filetype == MICE_DATA_38){
-       //CHEKC THE MICE_DATA* FILE THYE
-       mice_name(ifname,path,name,type);
-       /* printf("name: %s\ntype: %s\npath: %s\n",name,type,path); */
-   }
 
    //set graph type;
    if(gtypef){
@@ -183,8 +143,12 @@ int main(int argc,char** argv){
            graphtype = GINDIVIDUAL;
        }else if(!strcmp(gtype,"GMID")){
            graphtype = GMID;
-       }else if(!strcmp(gtype,"GMAX")){
-           graphtype = GMAX;
+       }else if(!strcmp(gtype,"GSYNC")){
+           graphtype = GSYNC;
+       }else if(!strcmp(gtype,"GPOWERSPEC")){
+           graphtype = GPOWERSPEC;
+       }else if(!strcmp(gtype,"GCCOR")){
+           graphtype = GCCOR;
        }else if(!strcmp(gtype,"GMIN")){
            graphtype = GMIN;
        }else if(!strcmp(gtype,"GDEVIATION")){
@@ -199,18 +163,70 @@ int main(int argc,char** argv){
        }else if(!strcmp(gtype,"GPOWERSPEC")){
            graphtype = GPOWERSPEC;
        }else{
-           fprintf(stderr,"Graph type: GINDIVIDUAL|GAVERAGE|GDEVIATION|GMID|GMIN|GMAX|GPOWERSPEC|GCHECK\n");
+           fprintf(stderr,"Graph type: GINDIVIDUAL|GAVERAGE|GDEVIATION|GMID|GMIN|GSYNC|GCCOR|GPOWERSPEC|GCHECK\n");
            return -1;
        }
    }else
        graphtype = GAVERAGE; // set a default graph type 
+
+    /* Check if there is a data file, and readin data if true*/ 
+   double *data,*data2; 
+   int lines = 0;
+   memset(name,'\0',255);
+   memset(path,'\0',255);
+   memset(type,'\0',255);
+
+   // Check file name according to the file type
+   mice_name(ifname,path,name,type);
+   /* printf("infile = %s\nname: %s\ntype: %s\npath: %s\n",ifname,name,type,path); */
+
+   //readin data with check process
+   if(ifflag){
+       if(iftypef){
+           if(!strcmp(iftype,"MICE_DATA_38")){
+               filetype = MICE_DATA_38;
+               if(graphtype == GSYNC || graphtype == GCCOR){
+                   data = read_mice_file(ifname,&lines);
+                   if(!strcmp("Temperature",type))
+                       sprintf(ifname2,"%s/%s.Activity.txt",path,name);
+                   else 
+                       sprintf(ifname2,"%s/%s.Temperature.txt",path,name);
+                   data2 = read_mice_file(ifname2,&lines);
+               }else 
+                   data = read_mice_file(ifname,&lines);
+           }else if(!strcmp(iftype,"SINGLE_COLUM")){
+               filetype = SINGLE_COLUM;
+               data = read_single_colum_data(ifname,&lines);
+           }else if(!strcmp(iftype,"MICE_DATA")){
+               filetype = MICE_DATA;
+               if(graphtype == GSYNC || graphtype == GCCOR){
+                   data = read_mice_file(ifname,&lines);
+                   if(!strcmp("Temperature",type))
+                       sprintf(ifname2,"%s/%s.Activity.txt",path,name);
+                   else 
+                       sprintf(ifname2,"%s/%s.Temperature.txt",path,name);
+                   data2 = read_mice_file(ifname2,&lines);
+               }else 
+                   data = read_mice_file(ifname,&lines);
+               //
+           }else{
+               fprintf(stderr,"File types: MICE_DATA | MICE_DATA_38 | SINGLE_COLUM\n");
+               return -1;
+           }
+       }else{
+           filetype = MICE_DATA;
+           data = read_mice_file(ifname,&lines);
+       }
+   }else{
+       fprintf(stderr,"An input data file is needed.\n");
+       return -1;
+   }
 
    // Set an time duration of every windows(segment)
    if(duration % 360 != 0){
        fprintf(stderr,"Duration is not complete hours. You'd better set it to be N*360 (N is an integer)\n");
        /* return -1; */
    }
-   fprintf(stdout,"outputf = %d\n",outputf);
 
    // Set the analysis type  And then process
    if(dfaf){
@@ -220,10 +236,20 @@ int main(int argc,char** argv){
            mice_dfap(name,path,type,data,lines,15120,order,duration);
            /* mice_dfa(name,path,type,data,lines,order,duration); */
    }else if(meanf){
-       if(filetype == MICE_DATA_38)
-           mice38_mean(data,lines,duration,graphtype,outputf);
-       if(filetype == MICE_DATA)
-           mice_mean(name,path,type,data,lines,duration);
+       if(filetype == MICE_DATA_38){
+           if(graphtype == GSYNC)
+               mice_sync(data,data2,lines,duration,graphtype,outputf);
+           else if(graphtype == GCCOR)
+               mice_ccor(data,data2,lines,duration,graphtype,outputf);
+           else 
+               mice38_mean(data,lines,duration,graphtype,outputf);
+       }
+       if(filetype == MICE_DATA){
+           if(graphtype == GSYNC)
+               mice_ccor(data,data2,lines,duration,graphtype,outputf);
+           else 
+               mice_mean(name,path,type,data,lines,duration);
+       }
    }else if(stdf){
        if(filetype == MICE_DATA_38)
            mice38_std(data,lines,duration,graphtype,outputf);
@@ -233,7 +259,6 @@ int main(int argc,char** argv){
        return -1; 
    
    free(data);
-
    return 0;
 }
 

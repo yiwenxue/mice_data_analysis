@@ -11,7 +11,7 @@
 #include<fftw3.h>
 
 
-#define N 1000
+#define N 864
 #define RE 0
 #define IM 1
 
@@ -109,23 +109,29 @@ void hilbert_trans(double *in,double *output,int num){
 }
 
 int main(int argc, char **argv){
-    double xx[N],yy[N],amp[N],phase[N];
+    double xx[N],yy[N],xx2[N],yy2[N],amp[N],phase[N];
     int i=0;
     double mpi = 1/M_PI;
     for(i=0;i<N;i++){
         xx[i] = sin(2*M_PI*i/N);
+        xx2[i] = xx[i] + 5;
         yy[i] = 0.0;
+        yy2[i] = 0.0;
     }
 
     hilbert_trans(xx,yy,N);
+    hilbert_trans(xx2,yy2,N);
+
+
 
     for(i=0;i<N;i++){
         amp[i] = sqrt(xx[i]*xx[i] + yy[i]*yy[i] );
-        phase[i] = atan(yy[i]/xx[i]);
+        phase[i] = sqrt(xx2[i]*xx2[i] + yy2[i]*yy2[i] );
+        /* phase[i] = atan(yy[i]/xx[i]); */
     }
 
     for(i =0;i<N;i++){
-        printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\n",i,xx[i],yy[i],amp[i]*cos(phase[i]),amp[i]*sin(phase[i]),amp[i],phase[i]);
+        printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",i,xx[i],yy[i],amp[i]*cos(phase[i]),amp[i]*sin(phase[i]),amp[i],phase[i],yy2[i]-yy[i]);
     }
     return 0;
 }

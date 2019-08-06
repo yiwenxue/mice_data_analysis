@@ -159,7 +159,7 @@ int mice38_dfa(double *data,
     }else if(graphtype == GMIN ){
         /* sprintf(outname,"%s/%s_%s_DFA%d_%d_GMIN.pdf",path,name,type,order,duration); */
         /* rsq = cosinor(xx,min,colum,func,5); */
-    }else if(graphtype == GMAX ){
+    /* }else if(graphtype == GMAX ){ */
         /* sprintf(outname,"%s/%s_%s_DFA%d_%d_GMAX.pdf",path,name,type,order,duration); */
         /* rsq = cosinor(xx,max,colum,func,5); */
     }else if(graphtype == GAVERAGE ){
@@ -212,13 +212,13 @@ int mice38_dfa(double *data,
         sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
                 func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
         return -1;
-    }else if(graphtype == GMAX ){
-        plot_cmd(plo,"set ylabel \"α max\"");
-        sprintf(cmd,"set title \"DFA%d of %s - day max(%s)\"",order,type,name);
-        plot_cmd(plo,cmd);
-        sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"",
-                func[0],func[1],t,func[2],func[3],2*t,func[4],rsq);
-        return -1;
+    /* }else if(graphtype == GMAX ){ */
+    /*     plot_cmd(plo,"set ylabel \"α max\""); */
+    /*     sprintf(cmd,"set title \"DFA%d of %s - day max(%s)\"",order,type,name); */
+    /*     plot_cmd(plo,cmd); */
+    /*     sprintf(cmd,"plot \'/tmp/mice\' u 1:3 with points pt 4 title \"Data\",%lf+%lf*cos(%lf*x+%lf)+%lf*cos(%lf*x+%lf) title \"Fit(R^2=%.3f)\"", */
+    /*             func[0],func[1],t,func[2],func[3],2*t,func[4],rsq); */
+    /*     return -1; */
     }else if(graphtype == GAVERAGE ){
         plot_cmd(plo,"set ylabel \"α(day average)\"");
         sprintf(cmd,"set title \"DFA%d of %s - day average(%s)\"",order,type,name);
@@ -524,7 +524,7 @@ int mice38_std(
 
 
     if(graphtype == GAVERAGE ){
-        sprintf(cmd,"set title \" STD %s - day average(%s)\"",type,name);
+        sprintf(cmd,"set title \" STD of %s - day average(%s)\"",type,name);
         plot_cmd(plo,cmd);
         plot_cmd(plo,"set ylabel \"Average\"");
         sprintf(cmd,"plot \'/tmp/mice\' u 1:2:4 with yerr pt 4 notitle,%f + %f * cos(%f * x + %f )+%f * cos(%f * x+ %f ) title \"fit(R^2=%.3f)\"",
@@ -896,4 +896,222 @@ int mice_std(char *name,    //file name of data
     fclose(plo);
     free(x);free(h);
     return 1;
+}
+
+int mice_sync(
+        double *data1, 
+        double *data2, 
+        int size, 
+        int duration, 
+        Gtype graphtype, 
+        int outputf)
+{
+    //num of colume is sagments, num of raws is different days;
+    int colum = 48*360 / duration;
+    int  raw = 18;
+    int xtotal = colum*raw;
+
+    char outname[255];
+    memset(outname,'\0',255);
+
+    /* printf("colum: %d\nraw: %d\n",colum,raw); */
+    /* printf("name %s/%s.%s\n",path,name,type); */
+    double *xx,*y1,*y2,*r,*amp1,*amp2,*pha1,*pha2;
+    fftw_complex *y1p,*y2p;
+    xx = (double*)malloc(sizeof(double)*colum*raw);
+    y1 = (double*)malloc(sizeof(double)*colum*raw);
+    y2 = (double*)malloc(sizeof(double)*colum*raw);
+    y1p = fftw_alloc_complex(colum*raw);
+    y2p = fftw_alloc_complex(colum*raw);
+    amp1 = (double*)malloc(sizeof(double)*colum*raw);
+    amp2 = (double*)malloc(sizeof(double)*colum*raw);
+    pha1 = (double*)malloc(sizeof(double)*colum*raw);
+    pha2 = (double*)malloc(sizeof(double)*colum*raw);
+    r = (double*)malloc(sizeof(double)*2*colum*raw);
+
+    for(int j=0;j<raw;j++){
+        for(int i=0;i<colum;i++){
+            xx[j*colum+i] = (i+0.5)*((double)duration/360.0); // hours
+            y1[j*colum+i] = gsl_stats_mean(data1+(j*17280/*length of 2 days*/+i*duration),1,duration); //mean value for every 3 hours 
+            y2[j*colum+i] = gsl_stats_mean(data2+(j*17280/*length of 2 days*/+i*duration),1,duration); //mean value for every 3 hours 
+        }
+    }
+
+    /* Because we should calculate on the amplitude, so we should remove the offset */ 
+    double mean1 = gsl_stats_mean(y1,1,xtotal);
+    double mean2 = gsl_stats_mean(y2,1,xtotal);
+    for(int i=0;i<xtotal;i++){
+        y1[i] -= mean1;
+        y2[i] -= mean2;
+    }
+
+    hilbert_trans(y1,y1p,xtotal);
+    hilbert_trans(y2,y2p,xtotal);
+
+    for(int i=0;i<xtotal;i++){
+        amp1[i] = sqrt(y1p[i][IM]*y1p[i][IM] + y1p[i][RE]*y1p[i][RE] );
+        pha1[i] = atan(y1p[i][IM]/y1p[i][RE]);
+        amp2[i] = sqrt(y2p[i][IM]*y2p[i][IM] + y2p[i][RE]*y2p[i][RE] );
+        pha2[i] = atan(y2p[i][IM]/y2p[i][RE]);
+    }
+
+    //Wants to print the results into a file;
+    FILE *output; 
+    output = fopen("/tmp/mice_sync","w");
+
+    for(int i=0;i<xtotal;i++){
+        fprintf(output,"%.2f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n",(i+0.5)*((double)duration/360.0),y1[i],y1p[i][RE],amp1[i],pha1[i],y2[i],y2p[i][RE],amp2[i],pha2[i]);
+    }
+    fclose(output);
+
+    //
+    // The progress to plot a graph;
+    //
+    FILE *plo; 
+    plo = gnuplot_create_t();
+    if(plo == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    char cmd[255];
+    if(!outputf)
+        plot_cmd(plo,"set terminal qt size 500,400");
+    else{
+        sprintf(outname,"%s/%s_%s_SYNC_Phase_%d.pdf",path,name,type,duration);
+        plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+        sprintf(cmd,"set output \"%s\"",outname);
+        printf("%s\n",cmd);
+        plot_cmd(plo,cmd);
+    }
+    /* plot_cmd(plo,"set title \"phase difference distribute\""); */
+    plot_cmd(plo,"set autoscale");
+    plot_cmd(plo,"set grid");
+    plot_cmd(plo,"bin(x,s) = s*int(x/s)");
+    plot_cmd(plo,"set boxwidth 0.05");
+    plot_cmd(plo,"set xrange [-pi:pi]");
+    plot_cmd(plo,"set style fill solid 0.5");
+    plot_cmd(plo,"set xlabel \"phase difference\"");
+    plot_cmd(plo,"plot '/tmp/mice_sync' u (bin($5-$9,0.05)):(20/300.) smooth frequency w boxes notitle");
+    if(outputf)
+        plot_cmd(plo,"set out");
+    fclose(plo);
+
+
+    FILE *plo2; 
+    plo2 = gnuplot_create_t();
+    if(plo2 == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    if(!outputf)
+        plot_cmd(plo2,"set terminal qt size 500,400");
+    else{
+        sprintf(outname,"%s/%s_%s_SYNC_Amp_%d.pdf",path,name,type,duration);
+        plot_cmd(plo2,"set terminal pdf size 6.0,4.0");
+        sprintf(cmd,"set output \"%s\"",outname);
+        printf("%s\n",cmd);
+        plot_cmd(plo2,cmd);
+    }
+    printf("\n\n\n\n\n");
+    /* plot_cmd(plo,"set title \"phase difference distribute\""); */
+    plot_cmd(plo2,"set ylabel \"Amp2\"");
+    plot_cmd(plo2,"set xlabel \"Amp1\"");
+    plot_cmd(plo2,"plot '/tmp/mice_sync' u 4:8 w lines lw 0.5 notitle");
+    if(outputf)
+        plot_cmd(plo2,"set out");
+    fclose(plo2);
+
+    free(y1);free(y2);free(xx);free(r);
+    fftw_free(y1p);fftw_free(y2p);
+    free(amp1);free(amp2);free(pha1);free(pha2);
+    return 0;
+}
+
+int mice_ccor(
+        double *data1, 
+        double *data2, 
+        int size, 
+        int duration, 
+        Gtype graphtype, 
+        int outputf)
+{
+    //num of colume is sagments, num of raws is different days;
+    int colum = 48*360 / duration;
+    int  raw = 18;
+
+    char outname[255];
+    memset(outname,'\0',255);
+
+    /* printf("colum: %d\nraw: %d\n",colum,raw); */
+    /* printf("name %s/%s.%s\n",path,name,type); */
+    double *xx,*yy, *y2,*r;
+    xx = (double*)malloc(sizeof(double)*colum*raw);
+    yy = (double*)malloc(sizeof(double)*colum*raw);
+    y2 = (double*)malloc(sizeof(double)*colum*raw);
+    r = (double*)malloc(sizeof(double)*2*colum*raw);
+
+    for(int j=0;j<raw;j++){
+        for(int i=0;i<colum;i++){
+            xx[j*colum+i] = (i+0.5)*((double)duration/360.0); // hours
+            yy[j*colum+i] = gsl_stats_mean(data1+(j*17280/*length of 2 days*/+i*duration),1,duration); //mean value for every 3 hours 
+            y2[j*colum+i] = gsl_stats_mean(data2+(j*17280/*length of 2 days*/+i*duration),1,duration); //mean value for every 3 hours 
+        }
+    }
+
+    //Wants to print the results into a file;
+    FILE *output; 
+    output = fopen("/tmp/mice_mean","w");
+
+    int xtemp = colum*raw;
+    for(int i=0;i<xtemp;i++){
+        fprintf(output,"%.2f\t%.3f\t%.3f\n",xx[i],yy[i],y2[i]);
+    }
+    fclose(output);
+
+    cross_corr(r,yy,y2,colum*raw);
+    output = fopen("/tmp/mice","w");
+    double xxtemp = xtemp*2.0;
+    for(int i=0;i<xxtemp;i++){
+        fprintf(output,"%.3f\t%.3f\n",(i-xtemp)*((double)duration/360.0),r[i]);
+    }
+    fclose(output);
+
+    //
+    // The progress to plot a graph;
+    //
+    FILE *plo; 
+    plo = gnuplot_create_t();
+    if(plo == NULL){
+        fprintf(stdout,"Error when call gnuplot.\n");
+        return 0;
+    }
+    char cmd[255];
+
+    //Check the output file name...
+    if(!outputf)
+        plot_cmd(plo,"set terminal qt size 500,400");
+    else{
+        sprintf(outname,"%s/%s_%s_CCOR_%d.pdf",path,name,type,duration);
+        plot_cmd(plo,"set terminal pdf size 6.0,4.0");
+        sprintf(cmd,"set output \"%s\"",outname);
+        printf("%s\n",cmd);
+        plot_cmd(plo,cmd);
+    }
+
+    plot_cmd(plo,"set grid");
+    plot_cmd(plo,"set xlabel \"delay(h)\"");
+
+    sprintf(cmd,"set title \" Cross-correlation of Temp and Act(%s)\"",name);
+    plot_cmd(plo,cmd);
+    plot_cmd(plo,"set ylabel \"CCOR\"");
+    sprintf(cmd,"plot \'/tmp/mice\' with lines notitle");
+    plot_cmd(plo,cmd);
+    if(outputf)
+        plot_cmd(plo,"set out");
+
+
+    fclose(plo);
+
+    free(y2);free(yy);free(xx);free(r);
+    return 0;
 }

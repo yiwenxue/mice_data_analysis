@@ -15,7 +15,8 @@ typedef enum{
     GDEVIATION,
     GMID,
     GMIN,
-    GMAX,
+    GSYNC,
+    GCCOR, 
     GPOWERSPEC, 
     GCHECK
 }Gtype;
